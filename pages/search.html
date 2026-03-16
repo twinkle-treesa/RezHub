@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Results — RezHub</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="../index.html" class="logo">
+      <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+      Rez<span class="accent">Hub</span>
+    </a>
+    <nav class="nav-links"></nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu"></div>
+</header>
+
+<!-- BREADCRUMB -->
+<nav class="breadcrumb">
+  <div class="container breadcrumb-inner">
+    <a href="../index.html">Home</a>
+    <span class="material-icons-round sep" style="font-size:12px;">chevron_right</span>
+    <span class="current" id="breadcrumbCurrent">Search Results</span>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="container">
+  <div class="results-layout">
+
+    <!-- FILTERS SIDEBAR -->
+    <aside class="filters-panel">
+      <h2>Refine Results</h2>
+
+      <div class="filter-section">
+        <div class="filter-label">Sort By</div>
+        <div class="input-wrap">
+          <select id="sortBy" class="input-field no-icon sort-select">
+            <option value="recommended">Recommended</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="rating">Highest Rating</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">Price Range (per night)</div>
+        <div class="price-display">
+          <span id="priceMin">₹0</span>
+          <span id="priceMax">₹1,50,000+</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
+          <input type="range" id="priceRangeMin" class="range-slider" min="0" max="150000" step="5000" value="0">
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="range" id="priceRangeMax" class="range-slider" min="0" max="150000" step="5000" value="150000">
+        </div>
+        <div style="font-size:0.75rem;color:var(--gray-400);margin-top:8px;">Drag both sliders to set range</div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">Minimum Rating</div>
+        <div class="rating-btns">
+          <button class="rating-btn active" data-rating="0">Any</button>
+          <button class="rating-btn" data-rating="3">3+</button>
+          <button class="rating-btn" data-rating="4">4+</button>
+          <button class="rating-btn" data-rating="4.5">4.5+</button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">State</div>
+        <div class="input-wrap">
+          <span class="material-icons-round icon">map</span>
+          <select id="stateFilter" class="input-field sort-select">
+            <option value="">All States</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Goa">Goa</option>
+            <option value="Gujarat">Gujarat</option>
+            <option value="Himachal Pradesh">Himachal Pradesh</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Kerala">Kerala</option>
+            <option value="Maharashtra">Maharashtra</option>
+            <option value="Rajasthan">Rajasthan</option>
+            <option value="Tamil Nadu">Tamil Nadu</option>
+            <option value="Uttar Pradesh">Uttar Pradesh</option>
+            <option value="West Bengal">West Bengal</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label">Star Rating</div>
+        <div class="rating-btns" id="starBtns">
+          <button class="rating-btn active" data-stars="0">All</button>
+          <button class="rating-btn" data-stars="1">⭐ 1</button>
+          <button class="rating-btn" data-stars="2">⭐ 2</button>
+          <button class="rating-btn" data-stars="3">⭐ 3</button>
+          <button class="rating-btn" data-stars="4">⭐ 4</button>
+          <button class="rating-btn" data-stars="5">⭐ 5</button>
+        </div>
+      </div>
+
+      <button class="reset-btn" id="resetFilters">
+        <span class="material-icons-round" style="font-size:16px;vertical-align:middle;">refresh</span>
+        Reset All Filters
+      </button>
+    </aside>
+
+    <!-- RESULTS -->
+    <div>
+      <div class="results-header">
+        <div>
+          <h1 id="resultsTitle" style="font-size:1.8rem;margin-bottom:4px;">All Hotels</h1>
+          <p class="results-count"><strong id="resultsCount">0</strong> properties found</p>
+        </div>
+        <div id="searchMeta" style="font-size:0.8rem;color:var(--gray-400);text-align:right;"></div>
+      </div>
+
+      <div id="hotelsList"></div>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo" style="margin-bottom:0;">
+          <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+          <span class="accent">RezHub</span>
+        </div>
+        <p>Your trusted partner for hotel reservations worldwide.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press Room</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Follow Us</h4>
+        <ul>
+          <li><a href="#">Facebook</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Twitter / X</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 RezHub. All rights reserved.</div>
+  </div>
+</footer>
+
+<script src="../js/data.js"></script>
+<script>
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    document.getElementById('mobileMenu').classList.toggle('open');
+  });
+  buildNav('search');
+
+  const params = getParams();
+  const destination = params.get('destination') || '';
+  const checkIn = params.get('checkIn') || '';
+  const checkOut = params.get('checkOut') || '';
+  const guests = params.get('guests') || '2';
+
+  let minPrice = 0, maxPrice = 150000, minRating = 0, sortBy = 'recommended', selectedState = '', selectedStars = 0;
+
+  document.getElementById('breadcrumbCurrent').textContent = destination || 'All Hotels';
+  document.getElementById('resultsTitle').textContent = destination || 'All Hotels';
+
+  if (checkIn && checkOut) {
+    document.getElementById('searchMeta').innerHTML =
+      `${formatDate(checkIn)} → ${formatDate(checkOut)}<br>${guests} ${+guests === 1 ? 'Guest' : 'Guests'}`;
+  }
+
+  const sliderMin = document.getElementById('priceRangeMin');
+  const sliderMax = document.getElementById('priceRangeMax');
+
+  sliderMin.addEventListener('input', () => {
+    minPrice = +sliderMin.value;
+    if (minPrice > maxPrice - 5000) { minPrice = maxPrice - 5000; sliderMin.value = minPrice; }
+    document.getElementById('priceMin').textContent = formatINR(minPrice);
+    render();
+  });
+  sliderMax.addEventListener('input', () => {
+    maxPrice = +sliderMax.value;
+    if (maxPrice < minPrice + 5000) { maxPrice = minPrice + 5000; sliderMax.value = maxPrice; }
+    document.getElementById('priceMax').textContent = maxPrice >= 150000 ? '₹1,50,000+' : formatINR(maxPrice);
+    render();
+  });
+
+  document.querySelectorAll('.rating-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      minRating = +btn.dataset.rating;
+      render();
+    });
+  });
+
+  document.getElementById('sortBy').addEventListener('change', function() {
+    sortBy = this.value; render();
+  });
+
+  document.getElementById('stateFilter').addEventListener('change', function() {
+    selectedState = this.value; render();
+  });
+
+  document.querySelectorAll('#starBtns .rating-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#starBtns .rating-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedStars = +btn.dataset.stars;
+      render();
+    });
+  });
+
+  document.getElementById('resetFilters').addEventListener('click', () => {
+    minPrice = 0; maxPrice = 150000; minRating = 0; sortBy = 'recommended';
+    sliderMin.value = 0; sliderMax.value = 150000;
+    document.getElementById('priceMin').textContent = '₹0';
+    document.getElementById('priceMax').textContent = '₹1,50,000+';
+    document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-rating="0"]').classList.add('active');
+    document.getElementById('sortBy').value = 'recommended';
+    selectedState = ''; document.getElementById('stateFilter').value = '';
+    selectedStars = 0; document.querySelectorAll('#starBtns .rating-btn').forEach(b => b.classList.remove('active')); document.querySelector('[data-stars="0"]').classList.add('active');
+    render();
+  });
+
+  function starsHtml(rating) {
+    const full = Math.floor(rating);
+    const half = rating % 1 >= 0.5;
+    let html = '';
+    for (let i = 0; i < full; i++) html += '<span class="material-icons-round" style="font-size:15px;color:var(--gold);">star</span>';
+    if (half) html += '<span class="material-icons-round" style="font-size:15px;color:var(--gold);">star_half</span>';
+    return html;
+  }
+
+  function render() {
+    let filtered = hotels.filter(h => {
+      const matchDest = !destination ||
+        h.city.toLowerCase().includes(destination.toLowerCase()) ||
+        (h.state && h.state.toLowerCase().includes(destination.toLowerCase())) ||
+        h.name.toLowerCase().includes(destination.toLowerCase()) ||
+        h.location.toLowerCase().includes(destination.toLowerCase());
+      const actualMax = maxPrice >= 150000 ? Infinity : maxPrice;
+      const matchPrice = h.price >= minPrice && h.price <= actualMax;
+      const matchRating = h.rating >= minRating;
+      const matchState = !selectedState || h.state === selectedState;
+      const matchStars = selectedStars === 0 || h.stars === selectedStars;
+      return matchDest && matchPrice && matchRating && matchState && matchStars;
+    });
+
+    filtered.sort((a, b) => {
+      if (sortBy === 'price-low') return a.price - b.price;
+      if (sortBy === 'price-high') return b.price - a.price;
+      if (sortBy === 'rating') return b.rating - a.rating;
+      return b.reviews - a.reviews;
+    });
+
+    document.getElementById('resultsCount').textContent = filtered.length;
+    document.getElementById('resultsTitle').textContent = selectedState
+      ? 'Hotels in ' + selectedState
+      : (destination ? 'Results for "' + destination + '"' : 'All Hotels');
+
+    const list = document.getElementById('hotelsList');
+    if (filtered.length === 0) {
+      list.innerHTML = `
+        <div class="no-results">
+          <div class="material-icons-round">search_off</div>
+          <h3>No hotels found</h3>
+          <p>Try adjusting your filters or search a different destination.</p>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(h => {
+      const amenityTags = h.amenities.slice(0, 4).map(a =>
+        `<span class="amenity-tag"><span class="material-icons-round">${getAmenityIcon(a)}</span>${a}</span>`
+      ).join('') + (h.amenities.length > 4 ? `<span class="amenity-tag">+${h.amenities.length - 4} more</span>` : '');
+
+      const detailUrl = `hotel.html?id=${h.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+
+      const priceBadge = h.pricingReason && h.pricingReason.event ?
+        `<div style="margin-top:6px;display:inline-flex;align-items:center;gap:5px;background:var(--gold-pale);border:1px solid rgba(201,169,110,0.4);border-radius:6px;padding:3px 10px;font-size:0.72rem;color:#7a5c1a;font-weight:600;">
+          <span class="material-icons-round" style="font-size:13px;">info</span>${h.pricingReason.event}
+        </div>` : '';
+
+      return `
+        <a href="${detailUrl}" class="hotel-card">
+          <div class="hotel-card-img">
+            <img src="${h.image}" alt="${h.name}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80'">
+          </div>
+          <div class="hotel-card-body">
+            <div class="hotel-card-top">
+              <div>
+                <div class="hotel-card-name">${h.name}</div>
+                <div class="hotel-card-location">
+                  <span class="material-icons-round">location_on</span>
+                  ${h.location}, ${h.city}
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <div class="stars" style="justify-content:flex-end;">${starsHtml(h.rating)}</div>
+                <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;margin-top:2px;">
+                  <span class="rating-value">${h.rating}</span>
+                  <span class="rating-count">(${h.reviews.toLocaleString()})</span>
+                </div>
+              </div>
+            </div>
+            <p class="hotel-card-desc">${h.description}</p>
+            <div class="hotel-card-amenities">${amenityTags}</div>
+            <div class="hotel-card-footer">
+              <div>
+                <div class="hotel-card-price-label">Starting from</div>
+                <div class="hotel-card-price">${formatINR(h.price)}</div>
+                <div class="hotel-card-price-night">per night + GST</div>
+                ${priceBadge}
+              </div>
+              <span class="view-btn">View Hotel</span>
+            </div>
+          </div>
+        </a>`;
+    }).join('');
+  }
+
+  render();
+</script>
+</body>
+</html>

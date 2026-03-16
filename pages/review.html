@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Write a Review — RezHub</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .star-btn { background:none; border:none; font-size:2rem; cursor:pointer; color:var(--gray-200); transition:color 0.15s, transform 0.1s; padding:2px; }
+    .star-btn.lit { color:var(--gold); }
+    .star-btn:hover { transform:scale(1.15); }
+    .cat-star { font-size:1.3rem; cursor:pointer; color:var(--gray-200); transition:color 0.1s; }
+    .cat-star.lit { color:var(--gold); }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="../index.html" class="logo">
+      <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+      <span class="accent">RezHub</span>
+    </a>
+    <nav class="nav-links"></nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu"></div>
+</header>
+
+<nav class="breadcrumb">
+  <div class="container breadcrumb-inner">
+    <a href="../index.html">Home</a>
+    <span class="material-icons-round sep" style="font-size:12px;">chevron_right</span>
+    <a href="mybookings.html">My Bookings</a>
+    <span class="material-icons-round sep" style="font-size:12px;">chevron_right</span>
+    <span class="current">Write a Review</span>
+  </div>
+</nav>
+
+<main style="padding:60px 0;min-height:60vh;">
+  <div class="container" style="max-width:680px;">
+    <div id="reviewContent"></div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo" style="margin-bottom:0;">
+          <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+          <span class="accent">RezHub</span>
+        </div>
+        <p>Your trusted partner for luxury hotel reservations across India.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul><li><a href="#">Help Center</a></li><li><a href="#">Contact Us</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul><li><a href="#">About Us</a></li><li><a href="#">Careers</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>Follow Us</h4>
+        <ul><li><a href="#">Facebook</a></li><li><a href="#">Instagram</a></li></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 RezHub. All rights reserved.</div>
+  </div>
+</footer>
+
+<script src="../js/data.js"></script>
+<script>
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    document.getElementById('mobileMenu').classList.toggle('open');
+  });
+  requireLogin();
+  buildNav('review');
+
+  const params = getParams();
+  const hotelParam = params.get('hotel') || 'Your Hotel';
+  const bid = params.get('bid') || '';
+
+  const routeMap = {
+    Cleanliness: 'Housekeeping Manager',
+    Service: 'Guest Relations Director',
+    Food: 'Executive Chef',
+    Value: 'Revenue Manager',
+    'Room Comfort': 'Rooms Division Manager'
+  };
+
+  const categories = Object.keys(routeMap);
+  const catRatings = {};
+  categories.forEach(c => catRatings[c] = 0);
+  let overall = 0, hoverOverall = 0;
+
+  function renderReview() {
+    const lowCats = categories.filter(c => catRatings[c] > 0 && catRatings[c] <= 3);
+
+    const routingNote = lowCats.length > 0 ? `
+      <div style="background:var(--gold-pale);border:1px solid rgba(201,169,110,0.4);border-radius:8px;padding:14px 16px;margin:16px 0;display:flex;align-items:flex-start;gap:10px;">
+        <span class="material-icons-round" style="color:#8a6a1e;font-size:20px;flex-shrink:0;">route</span>
+        <div>
+          <div style="font-weight:700;color:#7a5c1a;font-size:0.85rem;margin-bottom:4px;">Smart Routing Active</div>
+          <div style="font-size:0.82rem;color:#8a6a1e;">Your feedback on <strong>${lowCats.join(' & ')}</strong> will go directly to the <strong>${lowCats.map(c => routeMap[c]).join(' and ')}</strong> — not into a generic inbox.</div>
+        </div>
+      </div>` : '';
+
+    const catHtml = categories.map(cat => {
+      const stars = [1,2,3,4,5].map(i =>
+        `<span class="cat-star ${i <= catRatings[cat] ? 'lit' : ''}" onclick="setCat('${cat}',${i})" data-cat="${cat}" data-val="${i}">★</span>`
+      ).join('');
+      const routeHint = catRatings[cat] > 0 && catRatings[cat] <= 3
+        ? `<div style="font-size:0.72rem;color:var(--gold);margin-top:3px;">→ ${routeMap[cat]}</div>` : '';
+      return `
+        <div>
+          <div style="font-size:0.85rem;font-weight:600;color:var(--navy);">${cat}</div>
+          <div style="margin-top:4px;">${stars}</div>
+          ${routeHint}
+        </div>`;
+    }).join('');
+
+    const overallLabels = ['','Poor — We\'re sorry','Below expectations','Good stay overall','Great experience','Exceptional — World class'];
+
+    document.getElementById('reviewContent').innerHTML = `
+      <div style="background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:40px;border:1px solid var(--gray-200);">
+        <h1 style="font-size:2rem;margin-bottom:4px;">Share Your Experience</h1>
+        <div style="color:var(--gray-400);font-size:0.875rem;margin-bottom:28px;">Your feedback goes directly to the people who can act on it.</div>
+
+        <div style="margin-bottom:8px;font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--navy);">${hotelParam}</div>
+        ${bid ? `<div style="font-size:0.8rem;color:var(--gray-400);margin-bottom:24px;">Booking #${bid}</div>` : '<div style="margin-bottom:24px;"></div>'}
+
+        <div style="margin-bottom:24px;">
+          <div class="form-label" style="margin-bottom:10px;">Overall Rating</div>
+          <div id="overallStars" style="display:flex;gap:4px;margin-bottom:8px;"></div>
+          ${overall > 0 ? `<div style="font-size:0.85rem;color:var(--gray-600);">${overallLabels[overall]}</div>` : '<div style="font-size:0.82rem;color:var(--gray-400);">Click to rate</div>'}
+        </div>
+
+        <div style="margin-bottom:24px;">
+          <div class="form-label" style="margin-bottom:12px;">Rate Specific Areas</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">${catHtml}</div>
+        </div>
+
+        ${routingNote}
+
+        <div style="margin-bottom:24px;">
+          <label class="form-label" style="margin-bottom:8px;">Tell Us More</label>
+          <textarea id="reviewText" class="input-field no-icon" rows="5" style="resize:vertical;padding:14px;" placeholder="What made your stay memorable? What could be improved? Specific staff mentions are always appreciated…"></textarea>
+        </div>
+
+        ${overall === 0 ? `<p style="font-size:0.8rem;color:var(--gray-400);text-align:center;margin-bottom:12px;">Please give an overall rating to continue</p>` : ''}
+        <button id="submitReviewBtn" onclick="submitReview()" class="btn btn-primary btn-full btn-lg" ${overall === 0 ? 'style="opacity:0.5;cursor:not-allowed;"' : ''}>
+          <span class="material-icons-round">send</span>
+          Submit Review
+        </button>
+      </div>`;
+
+    // Render overall stars
+    const overallContainer = document.getElementById('overallStars');
+    [1,2,3,4,5].forEach(i => {
+      const btn = document.createElement('button');
+      btn.className = 'star-btn' + (i <= (hoverOverall || overall) ? ' lit' : '');
+      btn.textContent = '★';
+      btn.addEventListener('mouseenter', () => { hoverOverall = i; renderReview(); });
+      btn.addEventListener('mouseleave', () => { hoverOverall = 0; renderReview(); });
+      btn.addEventListener('click', () => { overall = i; renderReview(); });
+      overallContainer.appendChild(btn);
+    });
+  }
+
+  function setCat(cat, val) {
+    catRatings[cat] = catRatings[cat] === val ? 0 : val;
+    renderReview();
+  }
+  window.setCat = setCat;
+
+  function submitReview() {
+    if (overall === 0) return;
+    const text = document.getElementById('reviewText')?.value || '';
+    const lowCats = categories.filter(c => catRatings[c] > 0 && catRatings[c] <= 3);
+    // Save review to localStorage
+    try {
+      const user = getUser();
+      const params = new URLSearchParams(window.location.search);
+      const hotelId = params.get('hotel');
+      const bookingId = params.get('booking');
+      const hotel = hotels.find(h=>String(h.id)===String(hotelId));
+      const reviews = JSON.parse(localStorage.getItem('sb_reviews')||'[]');
+      reviews.unshift({
+        id: 'RV-'+Date.now(),
+        bookingId: bookingId||'',
+        hotelId: hotelId||'',
+        hotelName: hotel?.name||'',
+        hotelCity: hotel?.city||'',
+        userId: user?.email||'guest',
+        userName: user?.name||'Guest',
+        userEmail: user?.email||'',
+        rating: overall,
+        catRatings: {...catRatings},
+        text: text,
+        createdAt: new Date().toISOString(),
+        managerReply: null,
+        repliedAt: null
+      });
+      localStorage.setItem('sb_reviews', JSON.stringify(reviews.slice(0,100)));
+    } catch(e) {}
+
+    document.getElementById('reviewContent').innerHTML = `
+      <div style="background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:60px 40px;text-align:center;border:1px solid var(--gray-200);">
+        <div style="width:80px;height:80px;border-radius:50%;background:var(--gold-pale);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
+          <span class="material-icons-round" style="font-size:40px;color:var(--gold);">check_circle</span>
+        </div>
+        <h1 style="margin-bottom:12px;">Thank You for Your Feedback</h1>
+        <p style="color:var(--gray-600);font-size:0.95rem;margin-bottom:16px;">
+          ${lowCats.length > 0
+            ? `Your feedback on <strong>${lowCats.join(' & ')}</strong> has been routed directly to the <strong>${lowCats.map(c => routeMap[c]).join(' and ')}</strong> for immediate action.`
+            : 'Your review has been shared with the hotel management team.'}
+        </p>
+        <p style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-style:italic;color:var(--gold);margin-bottom:32px;">Your voice makes every stay better.</p>
+        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+          <a href="mybookings.html" class="btn btn-outline">My Bookings</a>
+          <a href="search.html" class="btn btn-primary">Browse Hotels</a>
+        </div>
+      </div>`;
+  }
+  window.submitReview = submitReview;
+
+  renderReview();
+</script>
+</body>
+</html>
