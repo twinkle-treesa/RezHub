@@ -10,6 +10,8 @@ The system allows users to explore hotels, view details, and make reservations t
 •	⭐ Loyalty feature (discount based on bookings)
 •	📋 View booking details
 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 🛠 Tech Stack
 •	Frontend: HTML, CSS, JavaScript
 •	Backend: PHP
@@ -17,6 +19,7 @@ The system allows users to explore hotels, view details, and make reservations t
 •	Server: XAMPP
 •	Version Control: Git & GitHub
 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 👥 Team Members
 •	Sooryatheerth S
