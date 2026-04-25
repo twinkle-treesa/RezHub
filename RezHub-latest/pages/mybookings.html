@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bookings — RezHub</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <script src="../js/api-helper.js" defer></script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="../index.html" class="logo">
+      <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+      <span class="accent">RezHub</span>
+    </a>
+    <nav class="nav-links"></nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu"></div>
+</header>
+
+<nav class="breadcrumb">
+  <div class="container breadcrumb-inner">
+    <a href="../index.html">Home</a>
+    <span class="material-icons-round sep" style="font-size:12px;">chevron_right</span>
+    <span class="current">My Bookings</span>
+  </div>
+</nav>
+
+<main style="padding:40px 0;min-height:60vh;">
+  <div class="container" style="max-width:900px;">
+    <h1 style="margin-bottom:6px;">My Bookings</h1>
+    <p style="color:var(--gray-400);margin-bottom:36px;">Modify dates or room type instantly — no phone calls needed.</p>
+    <div id="loyaltySummary" style="margin-bottom:28px;"></div>
+    <div id="bookingsList"></div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo" style="margin-bottom:0;">
+          <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+          <span class="accent">RezHub</span>
+        </div>
+        <p>Your trusted partner for luxury hotel reservations across India.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul><li><a href="#">Help Center</a></li><li><a href="#">Contact Us</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul><li><a href="#">About Us</a></li><li><a href="#">Careers</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>Follow Us</h4>
+        <ul><li><a href="#">Facebook</a></li><li><a href="#">Instagram</a></li></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 RezHub. All rights reserved.</div>
+  </div>
+</footer>
+
+<script src="../js/data.js"></script>
+<script>
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    document.getElementById('mobileMenu').classList.toggle('open');
+  });
+  requireLogin();
+  buildNav('bookings');
+
+  async function loadBookingsFromAPI() {
+    const list = document.getElementById('bookingsList');
+    try {
+      const result = await API.getBookings();
+      if (!result.success) throw new Error(result.error);
+      
+      const bookings = result.bookings || [];
+      if (!bookings.length) {
+        list.innerHTML = `
+          <div class="no-results" style="text-align:center;padding:80px 40px;background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-200);">
+            <span class="material-icons-round" style="font-size:48px;color:var(--gray-200);display:block;margin-bottom:16px;">receipt_long</span>
+            <h3 style="color:var(--navy);margin-bottom:8px;">No bookings yet</h3>
+            <p style="color:var(--gray-400);font-size:0.875rem;margin-bottom:24px;">Your confirmed bookings will appear here.</p>
+            <a href="search.html" class="btn btn-primary">Browse Hotels</a>
+          </div>`;
+        return;
+      }
+      renderBookings(bookings);
+    } catch (error) {
+      console.error('Failed to load bookings:', error);
+      list.innerHTML = `
+        <div class="alert alert-error">
+          <span class="material-icons-round">error_outline</span>
+          Failed to load bookings. <a href="" onclick="location.reload();return false;" style="text-decoration:underline;">Retry</a>
+        </div>`;
+    }
+  }
+
+  function renderBookings(bookings = []) {
+    const list = document.getElementById('bookingsList');
+
+    if (!bookings.length) {
+      list.innerHTML = `
+        <div class="no-results" style="text-align:center;padding:80px 40px;background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-200);">
+          <span class="material-icons-round" style="font-size:48px;color:var(--gray-200);display:block;margin-bottom:16px;">receipt_long</span>
+          <h3 style="color:var(--navy);margin-bottom:8px;">No bookings yet</h3>
+          <p style="color:var(--gray-400);font-size:0.875rem;margin-bottom:24px;">Your confirmed bookings will appear here.</p>
+          <a href="search.html" class="btn btn-primary">Browse Hotels</a>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = bookings.map(b => {
+      const hotel = hotels.find(h => h.id === b.hotelId);
+      const room = hotel?.rooms.find(r => r.id === b.roomId);
+      const isUpcoming = new Date(b.checkIn) >= new Date();
+      const statusColor = isUpcoming ? 'background:#e8f5ee;color:#1a7a4a;' : 'background:var(--gold-pale);color:#7a5c1a;';
+      const statusLabel = isUpcoming ? 'Upcoming' : 'Completed';
+
+      return `
+        <div style="background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);margin-bottom:24px;overflow:hidden;">
+          <!-- Header -->
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;background:var(--gray-100);border-bottom:1px solid var(--gray-200);">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:500;color:var(--navy);">${b.hotel_name}</div>
+              <div style="font-size:0.8rem;color:var(--gray-400);margin-top:2px;">${b.hotel_city} · Booking #${b.booking_code}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:4px 12px;border-radius:20px;${statusColor}">${statusLabel}</span>
+              ${isUpcoming ? `<button onclick="toggleModify('${b.id}')" style="display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:6px;border:1.5px solid var(--gold);background:transparent;color:var(--gold);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;" id="modBtn-${b.id}">
+                <span class="material-icons-round" style="font-size:15px;">edit</span> Modify
+              </button>` : `<a href="review.html?hotel_id=${b.hotel_id}&booking_id=${b.id}" style="display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:6px;border:1.5px solid var(--gold);background:transparent;color:var(--gold);font-size:0.8rem;font-weight:600;text-decoration:none;transition:all 0.2s;">
+                <span class="material-icons-round" style="font-size:15px;">rate_review</span> Write a Review
+              </a>`}
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:24px;padding:24px;align-items:center;">
+            <div>
+              <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-400);margin-bottom:4px;">Check-in</div>
+              <div style="font-size:1rem;font-weight:600;color:var(--navy);">${API.formatDate(b.check_in)}</div>
+            </div>
+            <div>
+              <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-400);margin-bottom:4px;">Check-out</div>
+              <div style="font-size:1rem;font-weight:600;color:var(--navy);">${API.formatDate(b.check_out)}</div>
+            </div>
+            <div>
+              <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-400);margin-bottom:4px;">Room</div>
+              <div style="font-size:1rem;font-weight:600;color:var(--navy);">${b.room_name}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-400);margin-bottom:4px;">Total Paid</div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold);">${API.formatPrice(b.total_price)}</div>
+            </div>
+          </div>
+
+          <!-- Modify Form -->
+          <div id="modifyForm-${b.id}" style="display:none;background:var(--cream);padding:20px 24px;border-top:1px solid var(--gray-200);"
+            <div style="font-weight:600;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+              <span class="material-icons-round" style="color:var(--gold);font-size:20px;">edit</span>
+              Modify Your Booking — Changes apply instantly
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+              <div class="form-group">
+                <label class="form-label">New Check-in</label>
+                <input type="date" id="mod-ci-${b.bookingId}" class="input-field no-icon" value="${b.checkIn}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">New Check-out</label>
+                <input type="date" id="mod-co-${b.bookingId}" class="input-field no-icon" value="${b.checkOut}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Room Type</label>
+                <select id="mod-rm-${b.bookingId}" class="input-field no-icon">
+                  ${hotel ? hotel.rooms.map(r => `<option value="${r.id}" ${r.id === b.roomId ? 'selected' : ''}>${r.name} — ${formatINR(r.price)}/night</option>`).join('') : `<option>${b.roomName}</option>`}
+                </select>
+              </div>
+            </div>
+            <div id="mod-success-${b.bookingId}" style="display:none;" class="alert alert-info" style="margin-bottom:12px;">
+              <span class="material-icons-round">check_circle</span> Booking updated successfully!
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;">
+              <button onclick="saveModification('${b.bookingId}')" class="btn btn-primary" style="padding:10px 28px;">
+                <span class="material-icons-round">save</span> Save Changes
+              </button>
+              <span style="font-size:0.8rem;color:var(--gray-400);">Price difference will be charged or refunded automatically.</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleModify(bid) {
+    const form = document.getElementById(`modifyForm-${bid}`);
+    const btn = document.getElementById(`modBtn-${bid}`);
+    const isOpen = form.style.display !== 'none';
+    form.style.display = isOpen ? 'none' : 'block';
+    btn.innerHTML = isOpen
+      ? '<span class="material-icons-round" style="font-size:15px;">edit</span> Modify'
+      : '<span class="material-icons-round" style="font-size:15px;">close</span> Cancel';
+  }
+
+  function saveModification(bid) {
+    const ci = document.getElementById(`mod-ci-${bid}`).value;
+    const co = document.getElementById(`mod-co-${bid}`).value;
+    const rmId = document.getElementById(`mod-rm-${bid}`).value;
+
+    if (!ci || !co || co <= ci) {
+      alert('Please set valid check-in and check-out dates.');
+      return;
+    }
+
+    // Find room name
+    let rmName = rmId;
+    for (const h of hotels) {
+      const r = h.rooms.find(r => r.id === rmId);
+      if (r) { rmName = r.name; break; }
+    }
+
+    updateBooking(bid, { checkIn: ci, checkOut: co, roomId: rmId, roomName: rmName });
+
+    const msg = document.getElementById(`mod-success-${bid}`);
+    msg.style.display = 'flex';
+    setTimeout(() => {
+      msg.style.display = 'none';
+      toggleModify(bid);
+      renderLoyaltySummary();
+      renderBookings();
+    }, 1500);
+  }
+
+  function renderLoyaltySummary() {
+    const tier = getCurrentTier();
+    const next = getNextTier();
+    const { totalBookings, totalSpend } = getLoyaltyStats();
+    const el = document.getElementById('loyaltySummary');
+    if (!el) return;
+
+    if (!tier && !next) { el.innerHTML = ''; return; }
+
+    if (!tier) {
+      el.innerHTML = `
+        <div style="background:var(--gold-pale);border:1px solid rgba(201,169,110,0.35);border-radius:var(--radius);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="material-icons-round" style="font-size:28px;color:var(--gold);">military_tech</span>
+            <div>
+              <div style="font-weight:700;color:var(--navy);">Complete 1 booking to unlock Bronze rewards</div>
+              <div style="font-size:0.8rem;color:var(--gray-600);margin-top:2px;">Earn ${next.discount}% off every future stay</div>
+            </div>
+          </div>
+          <a href="loyalty.html" class="btn btn-outline" style="padding:8px 20px;font-size:0.85rem;white-space:nowrap;">View Rewards</a>
+        </div>`;
+      return;
+    }
+
+    const nextInfo = next ? ` · ${Math.max(0, next.minBookings - totalBookings)} bookings to ${next.name}` : ' · Maximum tier reached!';
+    el.innerHTML = `
+      <div style="background:${tier.colorLight};border:2px solid ${tier.color}40;border-radius:var(--radius);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <span class="material-icons-round" style="font-size:36px;color:${tier.color};">${tier.icon}</span>
+          <div>
+            <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${tier.color};margin-bottom:3px;">${tier.name} Member</div>
+            <div style="font-weight:600;color:var(--navy);">${tier.discount}% discount applied to all your bookings</div>
+            <div style="font-size:0.78rem;color:var(--gray-400);margin-top:2px;">${totalBookings} booking${totalBookings!==1?'s':''}${nextInfo}</div>
+          </div>
+        </div>
+        <a href="loyalty.html" style="display:inline-flex;align-items:center;gap:6px;font-size:0.85rem;font-weight:600;color:${tier.color};text-decoration:none;padding:8px 18px;border:1.5px solid ${tier.color}60;border-radius:8px;transition:all 0.2s;">
+          <span class="material-icons-round" style="font-size:16px;">workspace_premium</span> View Full Status
+        </a>
+      </div>`;
+  }
+
+  window.toggleModify = toggleModify;
+  window.saveModification = saveModification;
+
+  document.addEventListener('auth-checked', () => {
+    loadBookingsFromAPI();
+  });
+</script>
+</body>
+</html>

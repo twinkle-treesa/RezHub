@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Booking — RezHub</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <!-- Razorpay Checkout SDK (free, no backend needed for test mode) -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    .razorpay-pay-section {
+      background: linear-gradient(135deg, #f8f4ff 0%, #ede8ff 100%);
+      border: 1.5px solid #7c3aed22;
+      border-radius: 14px;
+      padding: 28px 24px;
+    }
+    .razorpay-logo-row {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+    }
+    .razorpay-logo-row span { font-size: 0.82rem; color: var(--gray-400); }
+    .razorpay-methods {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;
+    }
+    .razorpay-method-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: #fff; border: 1px solid var(--gray-200);
+      border-radius: 8px; padding: 6px 14px;
+      font-size: 0.8rem; color: var(--navy); font-weight: 500;
+    }
+    .razorpay-method-badge .material-icons-round { font-size: 17px; color: #7c3aed; }
+    .btn-razorpay {
+      width: 100%; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      color: #fff; border: none; border-radius: 10px; padding: 15px 20px;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: opacity 0.2s, transform 0.1s; letter-spacing: 0.01em;
+    }
+    .btn-razorpay:hover { opacity: 0.92; transform: translateY(-1px); }
+    .btn-razorpay:active { transform: translateY(0); }
+    .btn-razorpay .material-icons-round { font-size: 20px; }
+    .secure-note {
+      display: flex; align-items: center; gap: 6px;
+      justify-content: center; font-size: 0.75rem; color: var(--gray-400); margin-top: 12px;
+    }
+    .secure-note .material-icons-round { font-size: 14px; color: var(--green); }
+    #rzpSpinner {
+      display: none; position: fixed; inset: 0;
+      background: rgba(255,255,255,0.75); z-index: 9999;
+      align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+    }
+    #rzpSpinner.active { display: flex; }
+    .spinner-ring {
+      width: 48px; height: 48px; border: 5px solid #ede8ff;
+      border-top-color: #7c3aed; border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #rzpSpinner p { color: var(--navy); font-weight: 600; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+
+<div id="rzpSpinner">
+  <div class="spinner-ring"></div>
+  <p id="spinnerMsg">Opening Razorpay…</p>
+</div>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="../index.html" class="logo">
+      <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+      <span class="accent">RezHub</span>
+    </a>
+    <nav class="nav-links"></nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu"></div>
+</header>
+
+<nav class="breadcrumb">
+  <div class="container breadcrumb-inner">
+    <a href="../index.html">Home</a>
+    <span class="material-icons-round sep" style="font-size:12px;">chevron_right</span>
+    <a href="search.html" id="breadcrumbSearch">Search</a>
+    <span class="material-icons-round sep" style="font-size:12px;">chevron_right</span>
+    <a href="#" id="breadcrumbHotel">Hotel</a>
+    <span class="material-icons-round sep" style="font-size:12px;">chevron_right</span>
+    <span class="current">Complete Booking</span>
+  </div>
+</nav>
+
+<div id="pageContent"></div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo" style="margin-bottom:0;">
+          <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+          <span class="accent">RezHub</span>
+        </div>
+        <p>Your trusted partner for luxury hotel reservations across India.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul><li><a href="#">Help Center</a></li><li><a href="#">Contact Us</a></li><li><a href="#">Privacy Policy</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul><li><a href="#">About Us</a></li><li><a href="#">Careers</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>Follow Us</h4>
+        <ul><li><a href="#">Facebook</a></li><li><a href="#">Instagram</a></li><li><a href="#">Twitter / X</a></li></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 RezHub. All rights reserved.</div>
+  </div>
+</footer>
+
+<script src="../js/data.js"></script>
+<script>
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    document.getElementById('mobileMenu').classList.toggle('open');
+  });
+  requireLogin();
+  buildNav('booking');
+
+  const params = getParams();
+  const hotelId = params.get('hotelId');
+  const roomId  = params.get('roomId');
+  const checkIn = params.get('checkIn') || '';
+  const checkOut = params.get('checkOut') || '';
+  const guests  = params.get('guests') || '2';
+  const nights  = calcNights(checkIn, checkOut);
+
+  const hotel = hotels.find(h => h.id === hotelId);
+  const room  = hotel?.rooms.find(r => r.id === roomId);
+
+  document.getElementById('breadcrumbSearch').href =
+    `search.html?destination=${hotel?.city||''}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+
+  if (!hotel || !room) {
+    document.getElementById('pageContent').innerHTML = `
+      <div class="container empty-state">
+        <div class="material-icons-round">search_off</div>
+        <h2>Booking Not Found</h2>
+        <p>Please go back and select a room.</p>
+        <a href="search.html" class="btn btn-primary">Browse Hotels</a>
+      </div>`;
+  } else {
+    document.title = `Book ${room.name} — RezHub`;
+    document.getElementById('breadcrumbHotel').textContent = hotel.name;
+    document.getElementById('breadcrumbHotel').href =
+      `hotel.html?id=${hotel.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+
+    const total          = room.price * nights;
+    const loyalty        = applyLoyaltyDiscount(total);
+    const discountedTotal = loyalty.discounted;
+    const taxes          = Math.round(discountedTotal * 0.18);
+    const grandTotal     = discountedTotal + taxes;
+    const currentTier    = getCurrentTier();
+    const nextTier       = getNextTier();
+
+    const loyaltyBanner = currentTier ? `
+      <div style="background:${currentTier.colorLight};border:1px solid ${currentTier.color}40;border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="material-icons-round" style="font-size:28px;color:${currentTier.color};">${currentTier.icon}</span>
+          <div>
+            <div style="font-weight:700;color:${currentTier.color};font-size:0.9rem;">${currentTier.name} Member — ${currentTier.discount}% off applied</div>
+            <div style="font-size:0.78rem;color:var(--gray-600);margin-top:2px;">You're saving ${formatINR(loyalty.saving)} on this booking</div>
+          </div>
+        </div>
+        <a href="loyalty.html" style="font-size:0.78rem;color:${currentTier.color};font-weight:600;white-space:nowrap;text-decoration:none;">View status →</a>
+      </div>` : nextTier ? `
+      <div style="background:var(--gray-100);border:1px solid var(--gray-200);border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="material-icons-round" style="font-size:22px;color:var(--gray-400);">${nextTier.icon}</span>
+          <div>
+            <div style="font-weight:600;color:var(--navy);font-size:0.875rem;">Unlock ${nextTier.discount}% off — reach ${nextTier.name}</div>
+            <div style="font-size:0.78rem;color:var(--gray-400);margin-top:2px;">Complete ${nextTier.minBookings} bookings & spend ${formatINR(nextTier.minSpend)} total</div>
+          </div>
+        </div>
+        <a href="loyalty.html" style="font-size:0.78rem;color:var(--gold);font-weight:600;white-space:nowrap;text-decoration:none;">Learn more →</a>
+      </div>` : '';
+
+    const prefs    = loadPrefs();
+    const prefCount = countPrefs(prefs);
+    const prefsList = [];
+    if (prefs.temp)  prefsList.push(`Room temp: ${prefs.temp}`);
+    if (prefs.pillow) prefsList.push(`${prefs.pillow} pillow`);
+    if (prefs.floor) prefsList.push(`Floor: ${prefs.floor}`);
+    if (prefs.diet && prefs.diet.length) prefsList.push(`Dietary: ${prefs.diet.join(', ')}`);
+    if (prefs.bed)   prefsList.push(`Bed: ${prefs.bed}`);
+
+    const prefNote = prefCount > 0 ? `
+      <div class="alert alert-info" style="margin-bottom:24px;">
+        <span class="material-icons-round" style="font-size:20px;">tune</span>
+        <div>
+          <strong>Your saved preferences will be included:</strong><br>
+          <span style="font-size:0.85rem;">${prefsList.join(' · ')}</span>
+          <button onclick="buildPrefModal()" style="background:none;border:none;color:#7a5c1a;text-decoration:underline;cursor:pointer;font-size:0.8rem;margin-left:8px;font-family:inherit;">Edit</button>
+        </div>
+      </div>` : `
+      <div style="background:var(--gray-100);border:1px solid var(--gray-200);border-radius:8px;padding:12px 16px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:0.85rem;color:var(--gray-600);">💡 Save preferences like room temperature, pillow type & diet — applied automatically to every booking.</span>
+        <button onclick="buildPrefModal()" class="btn btn-outline" style="padding:6px 16px;font-size:0.8rem;white-space:nowrap;margin-left:12px;">Set Preferences</button>
+      </div>`;
+
+    const savedSpecial = prefs.special || '';
+
+    document.getElementById('pageContent').innerHTML = `
+      <main class="booking-page">
+        <div class="container">
+          <h1 style="margin-bottom:32px;">Complete Your Booking</h1>
+          <div class="booking-grid">
+            <div>
+              ${loyaltyBanner}
+              ${prefNote}
+
+              <div class="booking-form-section">
+                <h2>Guest Information</h2>
+                <div class="form-grid-2" style="margin-bottom:20px;">
+                  <div class="form-group">
+                    <label class="form-label">First Name *</label>
+                    <div class="input-wrap">
+                      <span class="material-icons-round icon">person</span>
+                      <input type="text" id="firstName" class="input-field" placeholder="Rahul" required>
+                    </div>
+                    <div class="error-message" id="firstNameErr">First name is required.</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Last Name *</label>
+                    <div class="input-wrap">
+                      <span class="material-icons-round icon">person</span>
+                      <input type="text" id="lastName" class="input-field" placeholder="Sharma" required>
+                    </div>
+                    <div class="error-message" id="lastNameErr">Last name is required.</div>
+                  </div>
+                </div>
+                <div class="form-grid-2" style="margin-bottom:20px;">
+                  <div class="form-group">
+                    <label class="form-label">Email Address *</label>
+                    <div class="input-wrap">
+                      <span class="material-icons-round icon">email</span>
+                      <input type="email" id="email" class="input-field" placeholder="rahul@example.com" required>
+                    </div>
+                    <div class="error-message" id="emailErr">Valid email is required.</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Phone Number *</label>
+                    <div class="input-wrap">
+                      <span class="material-icons-round icon">phone</span>
+                      <input type="tel" id="phone" class="input-field" placeholder="+91 98765 43210" required>
+                    </div>
+                    <div class="error-message" id="phoneErr">Phone number is required.</div>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:20px;">
+                  <label class="form-label">Address</label>
+                  <div class="input-wrap">
+                    <span class="material-icons-round icon">home</span>
+                    <input type="text" id="address" class="input-field" placeholder="123 MG Road">
+                  </div>
+                </div>
+                <div class="form-grid-3">
+                  <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" id="city" class="input-field no-icon" placeholder="Bengaluru">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">State</label>
+                    <input type="text" id="country" class="input-field no-icon" placeholder="Karnataka">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">PIN Code</label>
+                    <input type="text" id="zipCode" class="input-field no-icon" placeholder="560001">
+                  </div>
+                </div>
+              </div>
+
+              <div class="booking-form-section">
+                <h2>Special Requests <span style="font-size:0.9rem;font-weight:400;color:var(--gray-400);">(optional)</span></h2>
+                ${prefCount > 0 ? `<p style="font-size:0.8rem;color:var(--gray-400);margin-bottom:12px;">Your saved preferences have been included above. Add anything else below.</p>` : ''}
+                <div class="form-group">
+                  <textarea id="specialRequests" class="input-field no-icon" rows="4" style="resize:vertical;padding:14px;"
+                    placeholder="Early check-in, specific floor, anniversary celebration, accessibility needs…">${savedSpecial}</textarea>
+                </div>
+              </div>
+
+              <div class="booking-form-section">
+                <h2>Payment</h2>
+                <div class="razorpay-pay-section">
+                  <div class="razorpay-logo-row">
+                    <svg height="26" viewBox="0 0 160 30" xmlns="http://www.w3.org/2000/svg">
+                      <text y="24" font-family="Arial,sans-serif" font-weight="800" font-size="22" fill="#072654">razor</text>
+                      <text x="70" y="24" font-family="Arial,sans-serif" font-weight="800" font-size="22" fill="#3395FF">pay</text>
+                    </svg>
+                    <span>Secure · Instant · Trusted by 10M+ businesses</span>
+                  </div>
+                  <div class="razorpay-methods">
+                    <div class="razorpay-method-badge">
+                      <span class="material-icons-round">credit_card</span> Cards (Visa / MC / RuPay)
+                    </div>
+                    <div class="razorpay-method-badge">
+                      <span class="material-icons-round">qr_code_2</span> UPI
+                    </div>
+                    <div class="razorpay-method-badge">
+                      <span class="material-icons-round">account_balance</span> Net Banking
+                    </div>
+                    <div class="razorpay-method-badge">
+                      <span class="material-icons-round">account_balance_wallet</span> Wallets
+                    </div>
+                    <div class="razorpay-method-badge">
+                      <span class="material-icons-round">payments</span> EMI
+                    </div>
+                  </div>
+
+                  <div id="formError" class="alert alert-error" style="display:none;margin-bottom:16px;">
+                    <span class="material-icons-round">error_outline</span>
+                    <span id="formErrorMsg">Please fix the errors above.</span>
+                  </div>
+
+                  <button type="button" id="rzpPayBtn" class="btn-razorpay">
+                    <span class="material-icons-round">lock</span>
+                    Pay Securely — ${formatINR(grandTotal)}${loyalty.saving > 0 ? ' (saved ' + formatINR(loyalty.saving) + ')' : ''}
+                  </button>
+                  <div class="secure-note">
+                    <span class="material-icons-round">verified_user</span>
+                    256-bit SSL encrypted · PCI DSS compliant · Powered by Razorpay
+                  </div>
+                </div>
+              </div>
+
+              <p style="font-size:0.78rem;color:var(--gray-400);text-align:center;margin-top:16px;">
+                By paying, you agree to our Terms of Service and Privacy Policy. Free cancellation available.
+              </p>
+            </div>
+
+            <div>
+              <div class="booking-summary-card">
+                <div class="summary-hotel-img">
+                  <img src="${hotel.image}" alt="${hotel.name}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80'">
+                </div>
+                <h3 style="font-size:1.3rem;margin-bottom:4px;">${hotel.name}</h3>
+                <div style="display:flex;align-items:center;gap:4px;font-size:0.8rem;color:var(--gray-400);margin-bottom:16px;">
+                  <span class="material-icons-round" style="font-size:14px;">location_on</span>
+                  ${hotel.location}, ${hotel.city}
+                </div>
+                <div class="summary-divider"></div>
+                <div class="summary-label">Room</div>
+                <div class="summary-value">${room.name}</div>
+                <div class="summary-label">Beds</div>
+                <div class="summary-value">${room.beds}</div>
+                <div class="summary-label">Max Guests</div>
+                <div class="summary-value">${room.maxGuests} guests</div>
+                <div class="summary-divider"></div>
+                <div class="summary-label">Check-in</div>
+                <div class="summary-value">${formatDate(checkIn) || 'Not set'}</div>
+                <div class="summary-label">Check-out</div>
+                <div class="summary-value">${formatDate(checkOut) || 'Not set'}</div>
+                <div class="summary-label">Guests</div>
+                <div class="summary-value">${guests} ${+guests === 1 ? 'Guest' : 'Guests'}</div>
+                <div class="summary-divider"></div>
+                <div class="summary-row">
+                  <span>${formatINR(room.price)} × ${nights} night${nights !== 1 ? 's' : ''}</span>
+                  <span>${formatINR(total)}</span>
+                </div>
+                ${loyalty.saving > 0 ? `
+                <div class="summary-row" style="color:var(--green);font-weight:600;">
+                  <span style="display:flex;align-items:center;gap:5px;">
+                    <span class="material-icons-round" style="font-size:15px;">local_offer</span>
+                    ${loyalty.pct}% ${getCurrentTier().name} member discount
+                  </span>
+                  <span>− ${formatINR(loyalty.saving)}</span>
+                </div>` : ''}
+                <div class="summary-row">
+                  <span>GST (18%)</span>
+                  <span>${formatINR(taxes)}</span>
+                </div>
+                <div class="summary-row total">
+                  <span>Total</span>
+                  <span class="summary-total-price">${formatINR(grandTotal)}</span>
+                </div>
+                ${loyalty.saving > 0 ? `
+                <div style="margin-top:8px;font-size:0.78rem;color:var(--green);text-align:right;font-weight:600;">
+                  You saved ${formatINR(loyalty.saving)} with your ${getCurrentTier().name} membership! 🎉
+                </div>` : ''}
+                <div style="margin-top:20px;background:var(--green-light);border-radius:8px;padding:12px;font-size:0.8rem;color:var(--green);display:flex;gap:8px;align-items:flex-start;">
+                  <span class="material-icons-round" style="font-size:16px;flex-shrink:0;margin-top:1px;">check_circle</span>
+                  Free cancellation up to 48 hours before check-in
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>`;
+
+    // ── Razorpay Payment Handler ────────────────────────────────────────────
+    document.getElementById('rzpPayBtn').addEventListener('click', () => {
+      // 1. Validate guest info first
+      let valid = true;
+      function validateField(id, errId, condition, msg) {
+        const el  = document.getElementById(id);
+        const err = document.getElementById(errId);
+        if (!condition(el.value.trim())) {
+          el.classList.add('error'); err.classList.add('show'); err.textContent = msg; valid = false;
+        } else { el.classList.remove('error'); err.classList.remove('show'); }
+      }
+      validateField('firstName', 'firstNameErr', v => v.length > 0,  'First name is required.');
+      validateField('lastName',  'lastNameErr',  v => v.length > 0,  'Last name is required.');
+      validateField('email',     'emailErr',     v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'Valid email address is required.');
+      validateField('phone',     'phoneErr',     v => v.length >= 6, 'Phone number is required.');
+
+      if (!valid) {
+        const errBox = document.getElementById('formError');
+        errBox.style.display = 'flex';
+        document.getElementById('formErrorMsg').textContent = 'Please fill in all required guest details above.';
+        document.querySelector('.error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      document.getElementById('formError').style.display = 'none';
+
+      const guestName      = document.getElementById('firstName').value.trim() + ' ' + document.getElementById('lastName').value.trim();
+      const email          = document.getElementById('email').value.trim();
+      const phone          = document.getElementById('phone').value.trim().replace(/\D/g, '').slice(-10);
+      const specialRequests = document.getElementById('specialRequests').value.trim();
+
+      // 2. Show spinner
+      document.getElementById('rzpSpinner').classList.add('active');
+      document.getElementById('spinnerMsg').textContent = 'Opening Razorpay…';
+
+      // 3. Razorpay options
+      // ⚠️ Replace 'rzp_test_YourKeyHere' with your Razorpay Test Key ID
+      // Get it free at: https://dashboard.razorpay.com → Sign up → Settings → API Keys
+      const rzpOptions = {
+        key: 'rzp_test_YourKeyHere',
+        amount: grandTotal * 100,   // in paise (₹1 = 100 paise)
+        currency: 'INR',
+        name: 'RezHub',
+        description: hotel.name + ' — ' + room.name + ' (' + nights + ' night' + (nights !== 1 ? 's' : '') + ')',
+        image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=80&q=80',
+        prefill: {
+          name:    guestName,
+          email:   email,
+          contact: phone ? '+91' + phone : ''
+        },
+        notes: { hotel: hotel.name, room: room.name, checkIn, checkOut, guests, specialRequests },
+        theme: { color: '#7c3aed' },
+        modal: {
+          ondismiss: () => document.getElementById('rzpSpinner').classList.remove('active')
+        },
+        handler: function(response) {
+          // Payment succeeded
+          document.getElementById('spinnerMsg').textContent = 'Confirming your booking…';
+          document.getElementById('rzpSpinner').classList.add('active');
+
+          const bookingId  = 'SB' + Date.now().toString().slice(-8).toUpperCase();
+          const bookingTier = getCurrentTier();
+          saveBooking({
+            bookingId,
+            razorpayPaymentId: response.razorpay_payment_id,
+            hotelId: hotel.id, hotelName: hotel.name, hotelCity: hotel.city,
+            hotelImage: hotel.image, roomName: room.name, roomId: room.id,
+            roomPrice: room.price, checkIn, checkOut, guests, nights,
+            total, taxes, grandTotal, guestName, email, specialRequests,
+            loyaltySaving: loyalty.saving,
+            tierAtBooking: bookingTier ? bookingTier.id : null,
+            bookedAt: new Date().toISOString(),
+            status: 'Confirmed'
+          });
+
+          const confirmParams = new URLSearchParams({
+            bid: bookingId, hotel: hotel.name, city: hotel.city, room: room.name,
+            checkIn, checkOut, guests, nights, total: grandTotal,
+            name: guestName, email, paymentId: response.razorpay_payment_id
+          });
+          window.location.href = 'confirmation.html?' + confirmParams.toString();
+        }
+      };
+
+      // 4. Open Razorpay
+      const rzp = new Razorpay(rzpOptions);
+      rzp.on('payment.failed', function(response) {
+        document.getElementById('rzpSpinner').classList.remove('active');
+        const errBox = document.getElementById('formError');
+        errBox.style.display = 'flex';
+        document.getElementById('formErrorMsg').textContent =
+          'Payment failed: ' + (response.error.description || 'Please try again.');
+      });
+
+      setTimeout(() => {
+        document.getElementById('rzpSpinner').classList.remove('active');
+        rzp.open();
+      }, 500);
+    });
+  }
+</script>
+</body>
+</html>

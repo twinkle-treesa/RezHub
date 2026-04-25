@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotel Detail — RezHub</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <script src="../js/api-helper.js" defer></script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="../index.html" class="logo">
+      <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+      <span class="accent">RezHub</span>
+    </a>
+    <nav class="nav-links"></nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu"></div>
+</header>
+
+<nav class="breadcrumb">
+  <div class="container breadcrumb-inner">
+    <a href="../index.html">Home</a>
+    <span class="material-icons-round sep" style="font-size:12px;">chevron_right</span>
+    <a href="#" id="breadcrumbSearch">Search Results</a>
+    <span class="material-icons-round sep" style="font-size:12px;">chevron_right</span>
+    <span class="current" id="breadcrumbHotel">Hotel</span>
+  </div>
+</nav>
+
+<div id="pageContent"></div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo" style="margin-bottom:0;">
+          <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+          <span class="accent">RezHub</span>
+        </div>
+        <p>Your trusted partner for luxury hotel reservations across India.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul><li><a href="#">About Us</a></li><li><a href="#">Careers</a></li><li><a href="#">Press Room</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul><li><a href="#">Help Center</a></li><li><a href="#">Contact Us</a></li><li><a href="#">Privacy Policy</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>Follow Us</h4>
+        <ul><li><a href="#">Facebook</a></li><li><a href="#">Instagram</a></li><li><a href="#">Twitter / X</a></li></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 RezHub. All rights reserved.</div>
+  </div>
+</footer>
+
+<script src="../js/data.js"></script>
+<script>
+  document.getElementById('menuToggle').addEventListener('click', () => {
+    document.getElementById('mobileMenu').classList.toggle('open');
+  });
+  buildNav('hotel');
+
+  const params = getParams();
+  const hotelId = params.get('id');
+  const checkIn = params.get('checkIn') || '';
+  const checkOut = params.get('checkOut') || '';
+  const guests = params.get('guests') || '2';
+  const nights = calcNights(checkIn, checkOut);
+
+  const searchUrl = `search.html?destination=&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+  document.getElementById('breadcrumbSearch').href = searchUrl;
+
+  const hotel = hotels.find(h => h.id === hotelId);
+
+  if (!hotel) {
+    document.getElementById('pageContent').innerHTML = `
+      <div class="container empty-state">
+        <div class="material-icons-round">search_off</div>
+        <h2>Hotel Not Found</h2>
+        <p>The hotel you're looking for doesn't exist or has been removed.</p>
+        <a href="search.html" class="btn btn-primary">Browse All Hotels</a>
+      </div>`;
+  } else {
+    document.title = `${hotel.name} — StayBooker`;
+    document.getElementById('breadcrumbHotel').textContent = hotel.name;
+
+    function starsHtml(rating) {
+      const full = Math.floor(rating);
+      const half = rating % 1 >= 0.5;
+      let html = '';
+      for (let i = 0; i < full; i++) html += '<span class="material-icons-round" style="font-size:18px;color:var(--gold);">star</span>';
+      if (half) html += '<span class="material-icons-round" style="font-size:18px;color:var(--gold);">star_half</span>';
+      return html;
+    }
+
+    const galleryImgs = [hotel.rooms[0]?.image, hotel.rooms[1]?.image, hotel.image, hotel.rooms[0]?.image]
+      .filter(Boolean).slice(0, 4);
+
+    const amenitiesHtml = hotel.amenities.map(a =>
+      `<div class="amenity-tag">
+        <span class="material-icons-round">${getAmenityIcon(a)}</span>${a}
+      </div>`).join('');
+
+    // Preference banner
+    const prefs = loadPrefs();
+    const prefCount = countPrefs(prefs);
+    const prefBanner = prefCount > 0 ? `
+      <div class="alert alert-info" style="margin-bottom:24px;display:flex;align-items:flex-start;gap:12px;">
+        <span class="material-icons-round" style="font-size:20px;flex-shrink:0;">tune</span>
+        <div>
+          <strong>Your preferences will be applied:</strong>
+          ${prefs.temp ? `<span style="margin-left:6px;">🌡️ ${prefs.temp}</span>` : ''}
+          ${prefs.pillow ? `<span style="margin-left:6px;">🛏️ ${prefs.pillow} pillow</span>` : ''}
+          ${prefs.floor ? `<span style="margin-left:6px;">🏢 ${prefs.floor}</span>` : ''}
+          ${prefs.diet && prefs.diet.length ? `<span style="margin-left:6px;">🍽️ ${prefs.diet.join(', ')}</span>` : ''}
+          <button onclick="buildPrefModal()" style="background:none;border:none;color:#7a5c1a;text-decoration:underline;cursor:pointer;font-size:0.8rem;margin-left:8px;font-family:inherit;">Edit preferences</button>
+        </div>
+      </div>` : `
+      <div style="background:var(--gray-100);border-radius:8px;padding:12px 16px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--gray-200);">
+        <span style="font-size:0.85rem;color:var(--gray-600);">💡 Set your preferences once — room temp, pillows, diet — and never re-enter them.</span>
+        <button onclick="buildPrefModal()" class="btn btn-outline" style="padding:6px 16px;font-size:0.8rem;white-space:nowrap;margin-left:12px;">Set Preferences</button>
+      </div>`;
+
+    // Nearby section
+    const nearbyHtml = hotel.nearby ? `
+      <section>
+        <h2>📍 What's Nearby — Honest Guide</h2>
+        <p style="font-size:0.85rem;color:var(--gray-400);margin-bottom:20px;margin-top:-12px;">Real distances. Any warnings shown are genuine.</p>
+        <div style="display:flex;flex-direction:column;gap:0;">
+          ${hotel.nearby.map(n => `
+            <div style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--gray-200);">
+              <div style="width:36px;height:36px;border-radius:8px;background:var(--gold-pale);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span class="material-icons-round" style="font-size:18px;color:#8a6a1e;">${n.icon}</span>
+              </div>
+              <div style="flex:1;">
+                <div style="font-weight:600;color:var(--navy);font-size:0.9rem;">${n.name}</div>
+                <div style="font-size:0.8rem;color:var(--gray-600);margin-top:2px;">${n.detail}</div>
+                ${n.warn ? `<div style="font-size:0.8rem;color:#c0392b;margin-top:4px;display:flex;align-items:center;gap:4px;"><span class="material-icons-round" style="font-size:14px;">warning</span>${n.warn}</div>` : ''}
+              </div>
+            </div>`).join('')}
+        </div>
+      </section>` : '';
+
+    // Pricing explanation section
+    const pr = hotel.pricingReason;
+    const priceExplainHtml = pr ? `
+      <div id="priceBreakdownBox" style="display:none;background:var(--gold-pale);border:1px solid rgba(201,169,110,0.4);border-radius:10px;padding:18px 20px;margin:16px 0;">
+        <div style="font-weight:700;color:#7a5c1a;margin-bottom:10px;font-size:0.9rem;">💡 Why this price tonight?</div>
+        ${pr.event ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:0.85rem;color:#8a6a1e;"><span class="material-icons-round" style="font-size:16px;">event</span><strong>${pr.event}</strong></div>` : ''}
+        <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--gray-600);padding:4px 0;">
+          <span>Base room rate</span><span>${formatINR(pr.base)}</span>
+        </div>
+        ${pr.surgeAmt > 0 ? `<div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--gray-600);padding:4px 0;">
+          <span>Demand surcharge (${pr.surge}%)</span><span>+ ${formatINR(pr.surgeAmt)}</span>
+        </div>` : ''}
+        <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--gray-600);padding:4px 0;">
+          <span>GST (18%)</span><span>+ ${formatINR(pr.gst)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:0.9rem;font-weight:700;color:var(--navy);padding:8px 0 0;border-top:1px solid rgba(201,169,110,0.3);margin-top:6px;">
+          <span>Total per night</span><span>${formatINR(hotel.price)}</span>
+        </div>
+      </div>` : '';
+
+    function widgetSummaryHtml(ci, co, g) {
+      const n = calcNights(ci, co);
+      return ci && co ? `
+        <div class="widget-summary">
+          <div class="widget-summary-row"><span>Check-in</span><span>${formatDate(ci)}</span></div>
+          <div class="widget-summary-row"><span>Check-out</span><span>${formatDate(co)}</span></div>
+          <div class="widget-summary-row"><span>Guests</span><span>${g}</span></div>
+          <div class="widget-summary-row"><span>Duration</span><span>${n} night${n !== 1 ? 's' : ''}</span></div>
+          <div class="widget-summary-row total"><span>Est. Total</span><span>${formatINR(hotel.price * n)}</span></div>
+        </div>` : `
+        <div class="alert alert-info" style="margin:16px 0;">
+          <span class="material-icons-round">info</span>
+          <span>Select dates to see total pricing.</span>
+        </div>`;
+    }
+
+    const roomsHtml = hotel.rooms.map(room => {
+      const roomTotal = room.price * nights;
+      const bookUrl = `booking.html?hotelId=${hotel.id}&roomId=${room.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+      return `
+        <div class="room-card">
+          <img src="${room.image}" alt="${room.name}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80'">
+          <div class="room-card-body">
+            <div class="room-card-header">
+              <div><div class="room-name">${room.name}</div></div>
+              <div style="text-align:right;">
+                <div class="room-price">${formatINR(room.price)}</div>
+                <div class="room-price-night">per night + GST</div>
+              </div>
+            </div>
+            <div class="room-meta">
+              <div class="room-meta-item"><span class="material-icons-round">bed</span>${room.beds}</div>
+              <div class="room-meta-item"><span class="material-icons-round">people</span>Up to ${room.maxGuests} guests</div>
+              <div class="room-meta-item"><span class="material-icons-round">square_foot</span>${room.size} m²</div>
+            </div>
+            <p class="room-card-desc">${room.description}</p>
+            <div class="room-amenities">
+              ${room.amenities.slice(0, 5).map(a =>
+                `<span class="amenity-tag" style="font-size:0.75rem;padding:4px 10px;">
+                  <span class="material-icons-round">${getAmenityIcon(a)}</span>${a}
+                </span>`).join('')}
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              ${checkIn && checkOut ? `<span style="font-size:0.85rem;color:var(--gray-600);">Total: <strong style="color:var(--navy);">${formatINR(roomTotal)}</strong> for ${nights} night${nights !== 1 ? 's' : ''}</span>` : '<span></span>'}
+              <a href="${bookUrl}" class="btn btn-primary">Book This Room</a>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('pageContent').innerHTML = `
+      <div class="detail-hero">
+        <img class="detail-hero-img" src="${hotel.image}" alt="${hotel.name}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80'">
+        <div class="detail-hero-overlay"></div>
+        <div class="container detail-hero-content">
+          <h1>${hotel.name}</h1>
+          <div class="detail-hero-meta">
+            <div class="detail-hero-location">
+              <span class="material-icons-round">location_on</span>
+              ${hotel.location}, ${hotel.city}, ${hotel.country}
+            </div>
+            <div class="stars">${starsHtml(hotel.rating)}</div>
+            <span style="color:rgba(255,255,255,0.9);font-weight:700;">${hotel.rating}</span>
+            <span style="color:rgba(255,255,255,0.6);font-size:0.85rem;">(${hotel.reviews.toLocaleString()} reviews)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="container" style="margin-top:8px;">
+        <div class="gallery-strip">
+          ${galleryImgs.map((img, i) =>
+            `<img src="${img}" alt="${hotel.name} photo ${i+1}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&q=80';">`
+          ).join('')}
+        </div>
+      </div>
+
+      <div class="container detail-layout">
+        <div class="detail-main">
+          ${prefBanner}
+
+          <section>
+            <h2>About This Hotel</h2>
+            <p style="color:var(--gray-600);line-height:1.75;">${hotel.description}</p>
+          </section>
+
+          <section>
+            <h2>Amenities & Services</h2>
+            <div class="amenities-grid">${amenitiesHtml}</div>
+          </section>
+
+          ${nearbyHtml}
+
+          <section>
+            <h2>Available Rooms</h2>
+            ${roomsHtml}
+          </section>
+        </div>
+
+        <aside class="booking-sidebar">
+          <div class="booking-widget">
+            <div class="widget-price">
+              <span class="widget-price-amount">${formatINR(hotel.price)}</span>
+              <span class="widget-price-label">/ night from</span>
+            </div>
+
+            <div style="margin-bottom:16px;">
+              <div class="flex" style="gap:6px;margin-bottom:8px;">
+                ${starsHtml(hotel.rating)}
+                <span style="font-weight:700;font-size:0.95rem;margin-left:4px;">${hotel.rating}</span>
+                <span style="font-size:0.8rem;color:var(--gray-400);">&nbsp;·&nbsp; ${hotel.reviews.toLocaleString()} reviews</span>
+              </div>
+              <button id="togglePriceBtn" onclick="togglePriceBreakdown()" style="display:inline-flex;align-items:center;gap:5px;background:var(--gold-pale);border:1px solid rgba(201,169,110,0.4);border-radius:6px;padding:5px 12px;font-size:0.78rem;font-weight:600;color:#7a5c1a;cursor:pointer;font-family:inherit;">
+                <span class="material-icons-round" style="font-size:15px;">info</span> Why this price?
+              </button>
+              ${priceExplainHtml}
+            </div>
+
+            <div class="widget-dates">
+              <div class="form-group">
+                <label class="form-label">Check-in</label>
+                <input type="date" id="widgetCheckIn" class="input-field no-icon" value="${checkIn}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Check-out</label>
+                <input type="date" id="widgetCheckOut" class="input-field no-icon" value="${checkOut}">
+              </div>
+            </div>
+            <div class="widget-guests form-group">
+              <label class="form-label">Guests</label>
+              <select id="widgetGuests" class="input-field no-icon">
+                ${[1,2,3,4,5,6].map(n => `<option value="${n}" ${n == +guests ? 'selected' : ''}>${n} ${n===1?'Guest':'Guests'}</option>`).join('')}
+              </select>
+            </div>
+
+            <div id="widgetSummary">${widgetSummaryHtml(checkIn, checkOut, guests)}</div>
+            <div id="widgetError" class="alert alert-error" style="display:none;">
+              <span class="material-icons-round">error_outline</span>
+              <span id="widgetErrorMsg"></span>
+            </div>
+
+            <a href="${hotel.rooms[0] ? `booking.html?hotelId=${hotel.id}&roomId=${hotel.rooms[0].id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}` : '#'}"
+               id="bookNowBtn" class="btn btn-primary btn-full btn-lg" style="margin-top:8px;">
+              <span class="material-icons-round">hotel</span>
+              Book Now
+            </a>
+            <p style="font-size:0.75rem;color:var(--gray-400);text-align:center;margin-top:12px;">
+              Free cancellation · No hidden fees
+            </p>
+          </div>
+        </aside>
+      </div>`;
+
+    function togglePriceBreakdown() {
+      const box = document.getElementById('priceBreakdownBox');
+      if (!box) return;
+      const visible = box.style.display !== 'none';
+      box.style.display = visible ? 'none' : 'block';
+      document.getElementById('togglePriceBtn').innerHTML = visible
+        ? '<span class="material-icons-round" style="font-size:15px;">info</span> Why this price?'
+        : '<span class="material-icons-round" style="font-size:15px;">expand_less</span> Hide breakdown';
+    }
+    window.togglePriceBreakdown = togglePriceBreakdown;
+
+    const wci = document.getElementById('widgetCheckIn');
+    const wco = document.getElementById('widgetCheckOut');
+    const wg = document.getElementById('widgetGuests');
+    const today = new Date().toISOString().split('T')[0];
+    wci.min = today; wco.min = today;
+
+    function updateWidget() {
+      const ci = wci.value, co = wco.value, g = wg.value;
+      const errBox = document.getElementById('widgetError');
+      if (ci && co && co <= ci) {
+        document.getElementById('widgetErrorMsg').textContent = 'Check-out must be after check-in.';
+        errBox.style.display = 'flex'; return;
+      }
+      errBox.style.display = 'none';
+      const n = calcNights(ci, co);
+      document.getElementById('widgetSummary').innerHTML = ci && co ? `
+        <div class="widget-summary">
+          <div class="widget-summary-row"><span>Check-in</span><span>${formatDate(ci)}</span></div>
+          <div class="widget-summary-row"><span>Check-out</span><span>${formatDate(co)}</span></div>
+          <div class="widget-summary-row"><span>Guests</span><span>${g}</span></div>
+          <div class="widget-summary-row"><span>Duration</span><span>${n} night${n !== 1 ? 's' : ''}</span></div>
+          <div class="widget-summary-row total"><span>Est. Total</span><span>${formatINR(hotel.price * n)}</span></div>
+        </div>` : `<div class="alert alert-info" style="margin:16px 0;"><span class="material-icons-round">info</span><span>Select dates to see pricing.</span></div>`;
+
+      if (hotel.rooms[0] && ci && co) {
+        document.getElementById('bookNowBtn').href =
+          `booking.html?hotelId=${hotel.id}&roomId=${hotel.rooms[0].id}&checkIn=${ci}&checkOut=${co}&guests=${g}`;
+      }
+      hotel.rooms.forEach(room => {
+        const btn = document.querySelector(`[href*="roomId=${room.id}"]`);
+        if (btn && ci && co) btn.href = `booking.html?hotelId=${hotel.id}&roomId=${room.id}&checkIn=${ci}&checkOut=${co}&guests=${g}`;
+      });
+    }
+
+    wci.addEventListener('change', () => { if (wco.value <= wci.value) wco.value = ''; updateWidget(); });
+    wco.addEventListener('change', updateWidget);
+    wg.addEventListener('change', updateWidget);
+  }
+  }
+</script>
