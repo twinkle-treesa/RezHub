@@ -1,0 +1,23 @@
+# RezHub — Apache config for XAMPP
+# Place the entire RezHub-latest/ folder in C:\xampp\htdocs\
+
+Options -Indexes
+
+# ── PHP session security ──────────────────────────────────────────────────────
+php_value session.cookie_httponly  1
+php_value session.use_strict_mode  1
+php_value session.cookie_samesite  Lax
+
+# ── CORS for API calls from the same origin ───────────────────────────────────
+<IfModule mod_headers.c>
+    <FilesMatch "\.php$">
+        Header always set X-Content-Type-Options "nosniff"
+        Header always set X-Frame-Options "SAMEORIGIN"
+    </FilesMatch>
+</IfModule>
+
+# ── Block direct access to config.php ────────────────────────────────────────
+<Files "config.php">
+    Order allow,deny
+    Deny from all
+</Files>
