@@ -76,21 +76,21 @@ if ($action === 'create') {
         $checkIn,
         $checkOut,
         (int)$b['guest_count'],
-        htmlspecialchars($b['first_name'], ENT_QUOTES, 'UTF-8'),
-        htmlspecialchars($b['last_name'], ENT_QUOTES, 'UTF-8'),
-        filter_var($b['guest_email'], FILTER_SANITIZE_EMAIL),
-        preg_replace('/[^0-9+\s\-().]/', '', $b['guest_phone']),  // sanitize phone
-        htmlspecialchars($b['address'] ?? '', ENT_QUOTES, 'UTF-8'),
-        htmlspecialchars($b['guest_city'] ?? '', ENT_QUOTES, 'UTF-8'),
-        htmlspecialchars($b['country'] ?? 'India', ENT_QUOTES, 'UTF-8'),
-        preg_replace('/[^0-9\-A-Z]/', '', $b['zip_code'] ?? ''),   // sanitize zip
-        htmlspecialchars($b['special_requests'] ?? '', ENT_QUOTES, 'UTF-8'),
+        $b['first_name'],
+        $b['last_name'],
+        $b['guest_email'],
+        $b['guest_phone'],
+        $b['address']          ?? null,
+        $b['guest_city']       ?? null,
+        $b['country']          ?? 'India',
+        $b['zip_code']         ?? null,
+        $b['special_requests'] ?? null,
         $basePrice,
         $taxAmount,
         $loyaltySav,
         $grandTotal,
         'upcoming',
-        $b['payment_id'] ?? null,
+        $b['payment_id']       ?? null,
     ]);
 
     respond(true, ['booking_id' => $bookingId, 'grand_total' => $grandTotal], 'Booking confirmed!', 201);
@@ -100,8 +100,10 @@ if ($action === 'create') {
 if ($action === 'mine') {
     $user = requireAuth();
     $stmt = $db->prepare(
-        'SELECT b.booking_id, b.status, b.check_in_date, b.check_out_date,
-                b.guest_count, b.grand_total, b.created_at,
+        'SELECT b.booking_id, b.hotel_id, b.room_id, b.status,
+                b.check_in_date, b.check_out_date, b.guest_count,
+                b.base_price, b.tax_amount, b.loyalty_saving, b.grand_total,
+                b.created_at,
                 h.name AS hotel_name, h.image_path,
                 c.name AS city_name, s.name AS state_name,
                 r.name AS room_name
