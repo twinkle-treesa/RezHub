@@ -31,7 +31,7 @@ const hotels = [
   {
     id:"mh3",name:"Trident Nariman Point",location:"Nariman Point",city:"Mumbai",state:"Maharashtra",
     stars:4,rating:4.6,reviews:1842,price:11500,
-    image:imgPath("images/gj3.jpg"),
+    image:imgPath("images/trident.jpg"),
     description:"Sophisticated business hotel in the financial district with stunning sea views and excellent conferencing facilities.",
     amenities:["Free WiFi","Pool","Gym","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Weekend Demand",surge:10,base:10455,surgeAmt:1045,gst:1725},
@@ -41,7 +41,7 @@ const hotels = [
   {
     id:"mh4",name:"Hotel Suba Palace",location:"Colaba",city:"Mumbai",state:"Maharashtra",
     stars:3,rating:4.1,reviews:976,price:5200,
-    image:imgPath("images/mh4.jpg"),
+    image:imgPath("images/suba.jpg"),
     description:"Well-located 3-star near the Gateway of India offering comfortable rooms and reliable service.",
     amenities:["Free WiFi","Restaurant","Room Service","Concierge"],
     pricingReason:{event:"Standard Rate",surge:0,base:4407,surgeAmt:0,gst:793},
@@ -51,7 +51,7 @@ const hotels = [
   {
     id:"mh5",name:"Hotel City Point",location:"Dadar",city:"Mumbai",state:"Maharashtra",
     stars:2,rating:3.5,reviews:412,price:2100,
-    image:imgPath("images/wb6.jpg"),
+    image:imgPath("images/citypoint.jpg"),
     description:"Budget-friendly 2-star in central Mumbai with easy access to trains, markets and local eateries.",
     amenities:["Free WiFi","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:1780,surgeAmt:0,gst:320},
@@ -61,7 +61,7 @@ const hotels = [
   {
     id:"mh6",name:"Hotel Decent",location:"CST Area",city:"Mumbai",state:"Maharashtra",
     stars:1,rating:3.1,reviews:218,price:850,
-    image:imgPath("images/gj6.jpg"),
+    image:imgPath("images/decent.jpg"),
     description:"No-frills 1-star lodge steps from Chhatrapati Shivaji Terminus — perfect for budget backpackers.",
     amenities:["Free WiFi"],
     pricingReason:{event:"Standard Rate",surge:0,base:720,surgeAmt:0,gst:130},
@@ -83,7 +83,7 @@ const hotels = [
   {
     id:"rj2",name:"The Oberoi Udaivilas",location:"Haridasji Ki Magri",city:"Udaipur",state:"Rajasthan",
     stars:5,rating:4.95,reviews:2104,price:42000,
-    image:imgPath("images/rj2.jpg"),
+    image:imgPath("images/udaivilas.jpg"),
     description:"Perched on Lake Pichola's banks — Rajasthan's most celebrated resort with private pools and hand-painted domes.",
     amenities:["Free WiFi","Pool","Spa","Gym","3 Restaurants","Bar","Room Service","Concierge"],
     pricingReason:{event:"Diwali Season",surge:35,base:31111,surgeAmt:10889,gst:6300},
@@ -93,7 +93,7 @@ const hotels = [
   {
     id:"rj3",name:"Umaid Bhawan Palace",location:"Palace Road",city:"Jodhpur",state:"Rajasthan",
     stars:5,rating:4.93,reviews:1102,price:55000,
-    image:imgPath("images/rj3.jpg"),
+    image:imgPath("images/umaid.jpg"),
     description:"Part of HH Gaj Singh II's royal residence — this 1943 Art Deco masterpiece overlooks the Blue City.",
     amenities:["Free WiFi","Pool","Spa","Gym","Restaurant","Bar","Room Service","Concierge"],
     pricingReason:{event:"Limited Availability",surge:0,base:46610,surgeAmt:0,gst:8390},
@@ -103,7 +103,7 @@ const hotels = [
   {
     id:"rj4",name:"Dera Rawatsar",location:"Civil Lines",city:"Jaipur",state:"Rajasthan",
     stars:4,rating:4.3,reviews:589,price:8500,
-    image:"https://images.unsplash.com/photo-1568575177891-8f71bb3a6f18?w=1080&q=80",
+    image:imgPath("images/dera.jpg"),
     description:"Charming heritage haveli converted to a boutique 4-star with courtyard pool and authentic Rajasthani cuisine.",
     amenities:["Free WiFi","Pool","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:7203,surgeAmt:0,gst:1297},
@@ -113,7 +113,7 @@ const hotels = [
   {
     id:"rj5",name:"Hotel Pearl Palace",location:"Hathroi Fort",city:"Jaipur",state:"Rajasthan",
     stars:3,rating:4.4,reviews:1203,price:3200,
-    image:imgPath("images/up5.jpg"),
+    image:imgPath("images/pearl.jpg"),
     description:"A beloved budget-traveller favourite — rooftop café, hand-painted rooms and exceptional value in the Pink City.",
     amenities:["Free WiFi","Restaurant","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:2712,surgeAmt:0,gst:488},
@@ -123,7 +123,7 @@ const hotels = [
   {
     id:"rj6",name:"Hotel Atithi",location:"Sindhi Camp",city:"Jaipur",state:"Rajasthan",
     stars:2,rating:3.6,reviews:387,price:1700,
-    image:imgPath("images/gj5.jpg"),
+    image:imgPath("images/atithi.jpg"),
     description:"Clean 2-star near the bus stand with 24hr reception and easy access to major sights.",
     amenities:["Free WiFi","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:1441,surgeAmt:0,gst:259},
@@ -145,7 +145,7 @@ const hotels = [
   {
     id:"dl2",name:"The Imperial New Delhi",location:"Janpath",city:"New Delhi",state:"Delhi",
     stars:5,rating:4.85,reviews:2340,price:26000,
-    image:imgPath("images/up1.jpg"),
+    image:imgPath("images/imperial.jpg"),
     description:"A 1931 Art Deco landmark on Janpath — a living heritage hotel with galleries, fine dining and colonial-era charm.",
     amenities:["Free WiFi","Pool","Spa","Gym","Restaurant","Bar","Room Service","Concierge"],
     pricingReason:{event:"Republic Day Season",surge:22,base:21311,surgeAmt:4689,gst:3900},
@@ -197,7 +197,7 @@ const hotels = [
   {
     id:"tn1",name:"ITC Grand Chola",location:"Guindy",city:"Chennai",state:"Tamil Nadu",
     stars:5,rating:4.82,reviews:1456,price:18000,
-    image:imgPath("images/tn1.jpg"),
+    image:imgPath("images/itcchola.jpg"),
     description:"South India's largest luxury hotel — a LEED Platinum masterpiece inspired by the Chola Empire with seven restaurants.",
     amenities:["Free WiFi","Rooftop Pool","Spa","Gym","Restaurant","Bar","Room Service","Concierge"],
     pricingReason:{event:"Weekend Surge",surge:12,base:16071,surgeAmt:1929,gst:2700},
@@ -207,7 +207,7 @@ const hotels = [
   {
     id:"tn2",name:"Taj Coromandel",location:"Nungambakkam",city:"Chennai",state:"Tamil Nadu",
     stars:5,rating:4.8,reviews:1893,price:16500,
-    image:imgPath("images/wb4.jpg"),
+    image:imgPath("images/coromandel.jpg"),
     description:"Chennai's original luxury address, renowned for legendary service, the iconic Prego restaurant and a serene pool.",
     amenities:["Free WiFi","Pool","Spa","Gym","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Corporate Season",surge:15,base:14348,surgeAmt:2152,gst:2475},
@@ -217,7 +217,7 @@ const hotels = [
   {
     id:"tn3",name:"Hyatt Regency Chennai",location:"Anna Salai",city:"Chennai",state:"Tamil Nadu",
     stars:4,rating:4.5,reviews:1102,price:9000,
-    image:imgPath("images/wb3.jpg"),
+    image:imgPath("images/hyatchennai.jpg"),
     description:"Centrally located 4-star with vibrant dining, rooftop bar and well-equipped fitness centre.",
     amenities:["Free WiFi","Pool","Gym","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:7627,surgeAmt:0,gst:1373},
@@ -227,7 +227,7 @@ const hotels = [
   {
     id:"tn4",name:"Hotel Fortel",location:"Anna Salai",city:"Chennai",state:"Tamil Nadu",
     stars:3,rating:3.9,reviews:645,price:4200,
-    image:imgPath("images/gj4.jpg"),
+    image:imgPath("images/fortel.jpg"),
     description:"Reliable 3-star on Anna Salai with a rooftop restaurant and easy city access.",
     amenities:["Free WiFi","Restaurant","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:3559,surgeAmt:0,gst:641},
@@ -237,7 +237,7 @@ const hotels = [
   {
     id:"tn5",name:"Hotel Pandian",location:"Egmore",city:"Chennai",state:"Tamil Nadu",
     stars:2,rating:3.5,reviews:421,price:1900,
-    image:imgPath("images/wb6.jpg"),
+    image:imgPath("images/pandian.jpg"),
     description:"2-star standby near Egmore railway station — clean, safe and value for money.",
     amenities:["Free WiFi","Restaurant"],
     pricingReason:{event:"Standard Rate",surge:0,base:1610,surgeAmt:0,gst:290},
@@ -247,7 +247,7 @@ const hotels = [
   {
     id:"tn6",name:"Hotel Chennai Gate",location:"Broadway",city:"Chennai",state:"Tamil Nadu",
     stars:1,rating:3.0,reviews:187,price:950,
-    image:imgPath("images/gj6.jpg"),
+    image:imgPath("images/chennai-gate-hotel.jpg"),
     description:"1-star budget lodge in central Chennai near Broadway bus terminus — basic but clean.",
     amenities:["Free WiFi"],
     pricingReason:{event:"Standard Rate",surge:0,base:805,surgeAmt:0,gst:145},
@@ -279,7 +279,7 @@ const hotels = [
   {
     id:"kl3",name:"Casino Hotel Kochi",location:"Wellington Island",city:"Kochi",state:"Kerala",
     stars:4,rating:4.4,reviews:978,price:8200,
-    image:imgPath("images/kl3.jpg"),
+    image:imgPath("images/casino.jpg"),
     description:"Well-established 4-star with waterfront dining, pool and easy ferry access to Fort Kochi.",
     amenities:["Free WiFi","Pool","Gym","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:6949,surgeAmt:0,gst:1251},
@@ -299,7 +299,7 @@ const hotels = [
   {
     id:"kl5",name:"Hotel Presidency",location:"MG Road",city:"Kochi",state:"Kerala",
     stars:2,rating:3.6,reviews:512,price:2200,
-    image:imgPath("images/gj5.jpg"),
+    image:imgPath("images/presidency.jpg"),
     description:"Budget-friendly 2-star on MG Road with reliable AC rooms and helpful staff.",
     amenities:["Free WiFi","Restaurant"],
     pricingReason:{event:"Standard Rate",surge:0,base:1864,surgeAmt:0,gst:336},
@@ -309,7 +309,7 @@ const hotels = [
   {
     id:"kl6",name:"Hotel Grace Residency",location:"Ernakulam",city:"Kochi",state:"Kerala",
     stars:1,rating:3.1,reviews:203,price:900,
-    image:imgPath("images/gj6.jpg"),
+    image:imgPath("images/grace.jpg"),
     description:"Simple 1-star near Ernakulam Junction — hot water, AC and WiFi at the lowest price.",
     amenities:["Free WiFi"],
     pricingReason:{event:"Standard Rate",surge:0,base:763,surgeAmt:0,gst:137},
@@ -331,7 +331,7 @@ const hotels = [
   {
     id:"ga2",name:"W Goa",location:"Vagator Beach",city:"North Goa",state:"Goa",
     stars:5,rating:4.75,reviews:1567,price:28000,
-    image:"https://images.unsplash.com/photo-1540541338537-71acf8a7d6a4?w=1080&q=80",
+    image:imgPath("images/wgoa.jpg"),
     description:"Ultra-chic clifftop resort at Vagator with dramatic Arabian Sea views, infinity pool and buzzing beach club.",
     amenities:["Free WiFi","Infinity Pool","Spa","Gym","Restaurant","Bar","Room Service"],
     pricingReason:{event:"New Year Eve Premium",surge:35,base:20741,surgeAmt:7259,gst:4200},
@@ -341,7 +341,7 @@ const hotels = [
   {
     id:"ga3",name:"Alila Diwa Goa",location:"Majorda",city:"South Goa",state:"Goa",
     stars:4,rating:4.6,reviews:1123,price:14000,
-    image:"https://images.unsplash.com/photo-1537991756753-29e6faca30b8?w=1080&q=80",
+    image:imgPath("images/alila.jpg"),
     description:"Serene 4-star surrounded by paddy fields near Majorda Beach — quiet ambience and excellent Spice Studio restaurant.",
     amenities:["Free WiFi","Pool","Spa","Gym","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Peak Season",surge:20,base:11667,surgeAmt:2333,gst:2100},
@@ -351,7 +351,7 @@ const hotels = [
   {
     id:"ga4",name:"Hotel Fidalgo",location:"18th June Road",city:"Panaji",state:"Goa",
     stars:3,rating:4.0,reviews:876,price:5500,
-    image:imgPath("images/ga4.jpg"),
+    image:imgPath("images/fidalgo.jpg"),
     description:"A Goa institution since 1962 — centrally located 3-star in Panaji with pool and multicuisine restaurant.",
     amenities:["Free WiFi","Pool","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:4661,surgeAmt:0,gst:839},
@@ -393,7 +393,7 @@ const hotels = [
   {
     id:"ka2",name:"Taj West End",location:"Race Course Road",city:"Bengaluru",state:"Karnataka",
     stars:5,rating:4.82,reviews:1876,price:24000,
-    image:imgPath("images/ka2.jpg"),
+    image:imgPath("images/westend.jpg"),
     description:"A 20-acre urban forest in the heart of Bengaluru — 130 years of history with colonial bungalows and a celebrated Jazz bar.",
     amenities:["Free WiFi","Pool","Spa","Gym","Restaurant","Bar","Room Service","Concierge"],
     pricingReason:{event:"IPL Season",surge:18,base:20339,surgeAmt:3661,gst:3600},
@@ -403,7 +403,7 @@ const hotels = [
   {
     id:"ka3",name:"Evolve Back Coorg",location:"Galibeedu",city:"Coorg",state:"Karnataka",
     stars:5,rating:4.9,reviews:1102,price:36000,
-    image:imgPath("images/gj3.jpg"),
+    image:imgPath("images/evolve.jpg"),
     description:"An extraordinary wilderness resort in Coorg's coffee estates — private pool villas, estate walks and traditional Coorgi cuisine.",
     amenities:["Free WiFi","Private Pool","Spa","Gym","Restaurant","Room Service"],
     pricingReason:{event:"Monsoon Season",surge:10,base:32727,surgeAmt:3273,gst:5400},
@@ -413,7 +413,7 @@ const hotels = [
   {
     id:"ka4",name:"Royal Orchid Hotel",location:"Golf Course Road",city:"Bengaluru",state:"Karnataka",
     stars:4,rating:4.3,reviews:987,price:7500,
-    image:imgPath("images/ka4.jpg"),
+    image:imgPath("images/royal.jpg"),
     description:"Polished 4-star business hotel near Bengaluru's IT corridor with a well-regarded multi-cuisine restaurant.",
     amenities:["Free WiFi","Pool","Gym","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:6356,surgeAmt:0,gst:1144},
@@ -423,7 +423,7 @@ const hotels = [
   {
     id:"ka5",name:"Hotel Ajantha",location:"MG Road",city:"Bengaluru",state:"Karnataka",
     stars:2,rating:3.5,reviews:534,price:2400,
-    image:imgPath("images/wb6.jpg"),
+    image:imgPath("images/ajanta.jpg"),
     description:"Budget 2-star on iconic MG Road — well connected, clean and great value for the location.",
     amenities:["Free WiFi","Restaurant"],
     pricingReason:{event:"Standard Rate",surge:0,base:2034,surgeAmt:0,gst:366},
@@ -433,7 +433,7 @@ const hotels = [
   {
     id:"ka6",name:"Hotel Adora",location:"Shivajinagar",city:"Bengaluru",state:"Karnataka",
     stars:1,rating:3.2,reviews:267,price:1100,
-    image:imgPath("images/gj6.jpg"),
+    image:imgPath("images/adora.jpg"),
     description:"No-frills 1-star lodge in the centre of Bengaluru — hot water, AC and WiFi at the lowest price.",
     amenities:["Free WiFi"],
     pricingReason:{event:"Standard Rate",surge:0,base:932,surgeAmt:0,gst:168},
@@ -445,7 +445,7 @@ const hotels = [
   {
     id:"wb1",name:"The Oberoi Grand",location:"Jawaharlal Nehru Road",city:"Kolkata",state:"West Bengal",
     stars:5,rating:4.87,reviews:2103,price:21000,
-    image:"https://images.unsplash.com/photo-1587563974553-b9b8bf3e6e5d?w=1080&q=80",
+    image:imgPath("images/oberoikolkata.jpg"),
     description:"A Victorian Gothic landmark on Park Street — Kolkata's most prestigious address since 1841, with unmatched colonial grandeur.",
     amenities:["Free WiFi","Pool","Spa","Gym","Restaurant","Bar","Room Service","Concierge"],
     pricingReason:{event:"Durga Puja Premium",surge:40,base:15000,surgeAmt:6000,gst:3150},
@@ -465,7 +465,7 @@ const hotels = [
   {
     id:"wb3",name:"Taj Bengal",location:"Alipore",city:"Kolkata",state:"West Bengal",
     stars:5,rating:4.8,reviews:1892,price:18500,
-    image:imgPath("images/wb3.jpg"),
+    image:imgPath("images/tajbengal.jpg"),
     description:"Overlooking the Maidan, Taj Bengal showcases the finest Bengali craftsmanship with exceptional cuisine and service.",
     amenities:["Free WiFi","Pool","Spa","Gym","Restaurant","Bar","Room Service","Concierge"],
     pricingReason:{event:"Standard Rate",surge:0,base:15678,surgeAmt:0,gst:2822},
@@ -485,7 +485,7 @@ const hotels = [
   {
     id:"wb5",name:"Hotel Hindustan International",location:"AJC Bose Road",city:"Kolkata",state:"West Bengal",
     stars:3,rating:3.9,reviews:654,price:4500,
-    image:imgPath("images/gj5.jpg"),
+    image:imgPath("images/hhi.jpg"),
     description:"Kolkata's well-known 3-star with an old-world charm, central location and popular Bengali restaurant.",
     amenities:["Free WiFi","Pool","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:3814,surgeAmt:0,gst:686},
@@ -495,7 +495,7 @@ const hotels = [
   {
     id:"wb6",name:"Hotel VIP International",location:"Park Circus",city:"Kolkata",state:"West Bengal",
     stars:2,rating:3.4,reviews:389,price:2000,
-    image:imgPath("images/wb6.jpg"),
+    image:imgPath("images/vip.jpg"),
     description:"No-nonsense 2-star in central Kolkata — good connectivity, clean rooms and budget-friendly rates.",
     amenities:["Free WiFi","Restaurant"],
     pricingReason:{event:"Standard Rate",surge:0,base:1695,surgeAmt:0,gst:305},
@@ -507,7 +507,7 @@ const hotels = [
   {
     id:"gj1",name:"The House of MG",location:"Lal Darwaja",city:"Ahmedabad",state:"Gujarat",
     stars:5,rating:4.85,reviews:1203,price:14000,
-    image:"https://images.unsplash.com/photo-1568575177891-8f71bb3a6f18?w=1080&q=80",
+    image:imgPath("images/mg.jpg"),
     description:"A 1924 heritage mansion transformed into a boutique 5-star — handcrafted Gujarati interiors, rooftop dining and an Agashiye restaurant.",
     amenities:["Free WiFi","Pool","Spa","Restaurant","Bar","Room Service","Concierge"],
     pricingReason:{event:"Navratri Premium",surge:30,base:10769,surgeAmt:3231,gst:2100},
@@ -527,7 +527,7 @@ const hotels = [
   {
     id:"gj3",name:"Lemon Tree Hotel Ahmedabad",location:"Judges Bungalow Road",city:"Ahmedabad",state:"Gujarat",
     stars:4,rating:4.3,reviews:765,price:6500,
-    image:imgPath("images/gj3.jpg"),
+    image:imgPath("images/lemon.jpg"),
     description:"Vibrant 4-star with cheerful design, rooftop pool and the popular Citrus Café — ideal for leisure and business travellers.",
     amenities:["Free WiFi","Pool","Gym","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:5508,surgeAmt:0,gst:992},
@@ -569,7 +569,7 @@ const hotels = [
   {
     id:"hp1",name:"Wildflower Hall",location:"Mashobra",city:"Shimla",state:"Himachal Pradesh",
     stars:5,rating:4.93,reviews:1034,price:45000,
-    image:imgPath("images/hp1.jpg"),
+    image:imgPath("images/hall.jpg"),
     description:"Once Lord Kitchener's residence, perched at 8,250 ft in cedar forests — the Himalayas' most celebrated mountain retreat.",
     amenities:["Free WiFi","Heated Pool","Spa","Gym","Restaurant","Bar","Room Service","Concierge"],
     pricingReason:{event:"Peak Summer Season",surge:25,base:36000,surgeAmt:9000,gst:6750},
@@ -579,7 +579,7 @@ const hotels = [
   {
     id:"hp2",name:"Spiti Sarai",location:"Kaza",city:"Spiti Valley",state:"Himachal Pradesh",
     stars:4,rating:4.7,reviews:567,price:8000,
-    image:imgPath("images/hp2.jpg"),
+    image:imgPath("images/spiti.jpg"),
     description:"Boutique 4-star at 12,500 ft in the Spiti Valley — solar-powered, sustainable and spectacularly remote.",
     amenities:["Free WiFi","Restaurant","Room Service"],
     pricingReason:{event:"Peak Monsoon Access",surge:20,base:6780,surgeAmt:1220,gst:1200},
@@ -589,7 +589,7 @@ const hotels = [
   {
     id:"hp3",name:"Oberoi Cecil",location:"Chaura Maidan",city:"Shimla",state:"Himachal Pradesh",
     stars:5,rating:4.86,reviews:1243,price:32000,
-    image:imgPath("images/hp3.jpg"),
+    image:imgPath("images/cecil.jpg"),
     description:"A 1884 colonial-era heritage hotel on Shimla's ridge with unobstructed Himalayan views and Oberoi's signature elegance.",
     amenities:["Free WiFi","Indoor Pool","Spa","Gym","Restaurant","Bar","Room Service","Concierge"],
     pricingReason:{event:"Summer Peak",surge:20,base:26667,surgeAmt:5333,gst:4800},
@@ -599,7 +599,7 @@ const hotels = [
   {
     id:"hp4",name:"Zostel Kasol",location:"Kasol Village",city:"Kasol",state:"Himachal Pradesh",
     stars:2,rating:4.2,reviews:1876,price:1500,
-    image:imgPath("images/hp4.jpg"),
+    image:imgPath("images/kasol.jpg"),
     description:"The most popular backpacker hostel in the Parvati Valley — dorms and private rooms, with the Beas River right outside.",
     amenities:["Free WiFi","Common Area","Bonfire"],
     pricingReason:{event:"Trekking Season",surge:10,base:1364,surgeAmt:136,gst:225},
@@ -609,7 +609,7 @@ const hotels = [
   {
     id:"hp5",name:"Hotel Peterhof",location:"Circular Road",city:"Shimla",state:"Himachal Pradesh",
     stars:3,rating:3.8,reviews:654,price:4500,
-    image:"https://images.unsplash.com/photo-1543296236-62b3b0a2d82e?w=1080&q=80",
+    image:imgPath("images/peterhof.jpg"),
     description:"A heritage 3-star run by HPTDC on Shimla's most scenic stretch — old-world character with modern comfort.",
     amenities:["Free WiFi","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:3814,surgeAmt:0,gst:686},
@@ -619,7 +619,7 @@ const hotels = [
   {
     id:"hp6",name:"Hotel Snow View",location:"Mall Road",city:"Manali",state:"Himachal Pradesh",
     stars:2,rating:3.6,reviews:487,price:2200,
-    image:"https://images.unsplash.com/photo-1598977905070-a0e3a9b9a9a0?w=1080&q=80",
+    image:imgPath("images/snowview.jpg"),
     description:"Budget 2-star on Manali's Mall Road — clean rooms, mountain views and walking distance from all trekking operators.",
     amenities:["Free WiFi","Restaurant"],
     pricingReason:{event:"Standard Rate",surge:0,base:1864,surgeAmt:0,gst:336},
@@ -632,7 +632,7 @@ const hotels = [
   {
     id:"up1",name:"Taj Hotel & Convention Centre",location:"Vikas Nagar",city:"Agra",state:"Uttar Pradesh",
     stars:5,rating:4.85,reviews:2341,price:22000,
-    image:imgPath("images/up1.jpg"),
+    image:imgPath("images/tag_agra.jpg"),
     description:"The closest 5-star to the Taj Mahal — stunning sunrise views of the monument from the pool, Jiva Spa and the famous Mughal-E-Azam restaurant.",
     amenities:["Free WiFi","Pool","Spa","Gym","Restaurant","Bar","Room Service","Concierge"],
     pricingReason:{event:"Taj Mahal Tourist Season",surge:25,base:17600,surgeAmt:4400,gst:3300},
@@ -642,7 +642,7 @@ const hotels = [
   {
     id:"up2",name:"Nadesar Palace",location:"Nadesar",city:"Varanasi",state:"Uttar Pradesh",
     stars:5,rating:4.88,reviews:987,price:38000,
-    image:imgPath("images/up2.jpg"),
+    image:imgPath("images/nadesar.jpg"),
     description:"A royal 5-star property — once the residence of the Maharaja of Benares — set in 6 acres of gardens by the Ganga.",
     amenities:["Free WiFi","Pool","Spa","Restaurant","Bar","Room Service","Concierge"],
     pricingReason:{event:"Dev Deepawali Season",surge:35,base:28148,surgeAmt:9852,gst:5700},
@@ -662,7 +662,7 @@ const hotels = [
   {
     id:"up4",name:"Hotel Clarks Varanasi",location:"The Mall",city:"Varanasi",state:"Uttar Pradesh",
     stars:4,rating:4.2,reviews:876,price:7500,
-    image:imgPath("images/up4.jpg"),
+    image:imgPath("images/clarks.jpg"),
     description:"Varanasi's oldest established 4-star — colonial heritage, pool and a convenient base for the ghats.",
     amenities:["Free WiFi","Pool","Gym","Restaurant","Bar","Room Service"],
     pricingReason:{event:"Standard Rate",surge:0,base:6356,surgeAmt:0,gst:1144},
@@ -672,7 +672,7 @@ const hotels = [
   {
     id:"up5",name:"Hotel Sheela",location:"East Gate, Taj Mahal",city:"Agra",state:"Uttar Pradesh",
     stars:2,rating:3.8,reviews:2301,price:2200,
-    image:imgPath("images/up5.jpg"),
+    image:imgPath("images/sheela.jpg"),
     description:"Legendary budget hotel right outside the Taj Mahal's East Gate — clean, friendly and unbeatable location for the price.",
     amenities:["Free WiFi","Restaurant"],
     pricingReason:{event:"Standard Rate",surge:0,base:1864,surgeAmt:0,gst:336},
@@ -682,7 +682,7 @@ const hotels = [
   {
     id:"up6",name:"Hotel Alka",location:"Meer Ghat",city:"Varanasi",state:"Uttar Pradesh",
     stars:1,rating:3.5,reviews:1203,price:1100,
-    image:"https://images.unsplash.com/photo-1561361058-c24e023867f3?w=1080&q=80",
+    image:imgPath("images/alka.jpg"),
     description:"1-star guesthouse right on the Ganges ghats — the most atmospheric budget stay in Varanasi.",
     amenities:["Free WiFi"],
     pricingReason:{event:"Standard Rate",surge:0,base:932,surgeAmt:0,gst:168},
@@ -779,10 +779,96 @@ function buildPrefModal(){
 
 // updateNavPrefBtn — see buildNav()
 
-// ── BOOKINGS STORE ────────────────────────────────────────────────────────────
-function saveBooking(data){ try{ const b=getBookings(); b.unshift(data); localStorage.setItem('sb_bookings',JSON.stringify(b.slice(0,20))); }catch(e){} }
-function getBookings(){ try{return JSON.parse(localStorage.getItem('sb_bookings')||'[]');}catch(e){return[];} }
-function updateBooking(bid,updates){ try{ const b=getBookings(); const i=b.findIndex(x=>x.bookingId===bid); if(i!==-1){b[i]={...b[i],...updates};localStorage.setItem('sb_bookings',JSON.stringify(b));} }catch(e){} }
+// ── BOOKINGS STORE (DB-backed via PHP API) ────────────────────────────────────
+// saveBooking: writes to the database via RezAPI.Bookings.create()
+// Returns a Promise that resolves with {success, bookingId}
+async function saveBooking(data){
+  if(typeof RezAPI === 'undefined') return { success: false };
+  try {
+    // Split full name into first/last for the PHP API
+    var nameParts = (data.guestName || '').trim().split(/\s+/);
+    var firstName = nameParts[0] || '';
+    var lastName  = nameParts.slice(1).join(' ') || firstName; // fallback to first if no last
+
+    const payload = {
+      hotel_id:         data.hotelId,
+      room_id:          data.roomId,
+      check_in_date:    data.checkIn,
+      check_out_date:   data.checkOut,
+      guest_count:      data.guests || 1,
+      nights:           data.nights,
+      base_price:       data.total,
+      tax_amount:       data.taxes,
+      grand_total:      data.grandTotal,
+      loyalty_saving:   data.loyaltySaving || 0,
+      first_name:       firstName,
+      last_name:        lastName,
+      guest_email:      data.email,
+      guest_phone:      data.phone || '0000000000',
+      special_requests: data.specialRequests || '',
+      payment_id:       data.razorpayPaymentId || data.paymentId || '',
+    };
+    const result = await RezAPI.Bookings.create(payload);
+    return result;
+  } catch(e) {
+    console.error('saveBooking API error:', e);
+    return { success: false, message: e.message };
+  }
+}
+
+// getBookings: fetches from DB; returns [] synchronously from cache if available
+// For async callers use getBookingsAsync()
+let _bookingsCache = null;
+async function getBookingsAsync(){
+  if(typeof RezAPI === 'undefined') return [];
+  try {
+    const r = await RezAPI.Bookings.mine();
+    if(r.success && r.data){
+      _bookingsCache = r.data.map(b => ({
+        bookingId:   b.booking_id   || b.bookingId,
+        hotelId:     b.hotel_id     || b.hotelId,
+        hotelName:   b.hotel_name   || b.hotelName   || '',
+        hotelCity:   b.city_name    || b.hotel_city   || b.hotelCity    || '',
+        hotelState:  b.state_name   || b.hotel_state  || b.hotelState   || '',
+        hotelImage:  b.hotel_image  || b.hotelImage   || '',
+        roomId:      b.room_id      || b.roomId,
+        roomName:    b.room_name    || b.roomName     || '',
+        checkIn:     b.check_in_date|| b.checkIn,
+        checkOut:    b.check_out_date||b.checkOut,
+        guests:      Number(b.guest_count || b.guests || 1),
+        nights:      Number(b.nights || 1),
+        total:       Number(b.base_price  || b.total  || 0),
+        taxes:       Number(b.tax_amount  || b.taxes  || 0),
+        grandTotal:  Number(b.grand_total || b.grandTotal || 0),
+        loyaltySaving: Number(b.loyalty_saving || 0),
+        guestName:   b.guest_name   || b.guestName   || '',
+        email:       b.guest_email  || b.email        || '',
+        phone:       b.guest_phone  || b.phone        || '',
+        specialRequests: b.special_requests || b.specialRequests || '',
+        paymentId:   b.payment_id   || b.paymentId    || '',
+        bookedAt:    b.created_at   || b.bookedAt,
+        status:      b.status       || 'confirmed',
+      }));
+      return _bookingsCache;
+    }
+  } catch(e){ console.error('getBookingsAsync error:', e); }
+  return [];
+}
+function getBookings(){ return _bookingsCache || []; }
+
+// updateBooking: sends cancel/status update to DB, also patches local cache
+async function updateBooking(bid, updates){
+  if(typeof RezAPI === 'undefined') return;
+  try {
+    if(updates.status === 'Cancelled' || updates.status === 'cancelled'){
+      await RezAPI.Bookings.cancel(bid);
+    }
+    if(_bookingsCache){
+      const i = _bookingsCache.findIndex(x => x.bookingId === bid);
+      if(i !== -1) _bookingsCache[i] = { ..._bookingsCache[i], ...updates };
+    }
+  } catch(e){ console.error('updateBooking error:', e); }
+}
 
 // ── LOYALTY SYSTEM ────────────────────────────────────────────────────────────
 const LOYALTY_TIERS = [
@@ -890,19 +976,39 @@ function applyLoyaltyDiscount(price) {
 // ═══════════════════════════════════════════════════════════════
 // USER AUTH
 // ═══════════════════════════════════════════════════════════════
-function saveUser(u){ try{localStorage.setItem('sb_user',JSON.stringify(u));}catch(e){} }
-function getUser(){ try{return JSON.parse(localStorage.getItem('sb_user')||'null');}catch(e){return null;} }
+function saveUser(u){
+  try{ localStorage.setItem('sb_user', JSON.stringify(u)); }catch(e){}
+  if(typeof RezAPI!=='undefined'){ try{ RezAPI.Session.setUser(u); }catch(e){} }
+}
+function getUser(){
+  try{ return JSON.parse(localStorage.getItem('sb_user')||'null'); }catch(e){ return null; }
+}
 function isLoggedIn(){ return !!getUser(); }
-function logoutUser(){
+var _loggingOut = false;
+async function logoutUser(){
+  if(_loggingOut) return;
+  _loggingOut = true;
   try{localStorage.removeItem('sb_user');}catch(e){}
+  // Call PHP logout directly — works even when api.js is not loaded
+  try{
+    var _parts = window.location.pathname.split('/');
+    var _idx   = _parts.indexOf('RezHub-latest');
+    var _base  = (_idx !== -1 ? '/' + _parts.slice(0, _idx + 1).join('/').replace(/^\//, '') : '') + '/api';
+    await fetch(_base + '/auth.php?action=logout', {method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body:'{}'});
+  }catch(e){}
+  if(typeof RezAPI !== 'undefined'){ try{RezAPI.Session.clearAll();}catch(e){} }
   var inPages = window.location.pathname.indexOf('/pages/') !== -1;
   window.location.href = inPages ? '../index.html' : 'index.html';
 }
 function requireLogin(){
   if(!isLoggedIn()){
     var inPages = window.location.pathname.indexOf('/pages/') !== -1;
-    var back = encodeURIComponent(window.location.href);
-    window.location.href = (inPages ? '' : 'pages/') + 'login.html?redirect=' + back;
+    // Never redirect back to login.html itself — that causes an infinite redirect loop
+    var currentPath = window.location.pathname;
+    var isLoginPage = currentPath.indexOf('login.html') !== -1;
+    var back = isLoginPage ? '' : encodeURIComponent(window.location.href);
+    var target = (inPages ? '' : 'pages/') + 'login.html';
+    window.location.href = back ? target + '?redirect=' + back : target;
     throw new Error('redirect');
   }
 }
@@ -912,6 +1018,15 @@ function requireLogin(){
 // ═══════════════════════════════════════════════════════════════
 function buildNav(activePage){
   var user = getUser();
+  // Normalise — handle {name}, {full_name}, empty string, missing id
+  if (user) {
+    if (!user.name) user = Object.assign({}, user, {
+      name: user.full_name || user.email || 'Guest',
+      id:   user.id || user.user_id
+    });
+    // Ensure name is never an empty string
+    if (!user.name) user = Object.assign({}, user, { name: user.email || 'Guest' });
+  }
   var inPages = window.location.pathname.indexOf('/pages/') !== -1;
   var root = inPages ? '../' : '';
   var nav = document.querySelector('.nav-links');
@@ -921,13 +1036,14 @@ function buildNav(activePage){
   if(user){
     var tier = getCurrentTier();
     var tierBadge = tier
-      ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:10px;font-size:0.68rem;font-weight:700;background:'+tier.colorLight+';color:'+tier.color+';border:1px solid '+tier.color+'40;"><span class=\"material-icons-round\" style=\"font-size:12px;\">'+tier.icon+'</span>'+tier.name+'</span>'
+      ? '<span class="nav-tier-badge" style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:10px;font-size:0.68rem;font-weight:700;background:'+tier.colorLight+';color:'+tier.color+';border:1px solid '+tier.color+'40;"><span class=\"material-icons-round\" style=\"font-size:12px;\">'+tier.icon+'</span>'+tier.name+'</span>'
       : '';
     nav.innerHTML =
       '<a href="'+root+'index.html"'+(activePage==='home'?' class=\"active\"':'')+'>Home</a>'+
       '<a href="'+root+'pages/search.html"'+(activePage==='search'?' class=\"active\"':'')+'>Browse Hotels</a>'+
       '<a href="'+root+'pages/mybookings.html"'+(activePage==='bookings'?' class=\"active\"':'')+'>My Bookings</a>'+
       '<a href="'+root+'pages/loyalty.html"'+(activePage==='rewards'?' class=\"active\"':'')+'>My Rewards</a>'+
+      '<a href="'+root+'pages/support.html"'+(activePage==='support'?' class=\"active\"':'')+'>Support</a>'+
       '<button id=\"navPrefBtn\" onclick=\"buildPrefModal()\" style=\"display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;\"><span class=\"material-icons-round\" style=\"font-size:15px;\">tune</span> Prefs</button>'+
       tierBadge+
       '<span style=\"font-size:0.82rem;color:rgba(255,255,255,0.55);\" >Hi, <strong style=\"color:#fff;\">'+user.name.split(' ')[0]+'</strong></span>'+
@@ -937,6 +1053,7 @@ function buildNav(activePage){
       '<a href="'+root+'pages/search.html">Browse Hotels</a>'+
       '<a href="'+root+'pages/mybookings.html">My Bookings</a>'+
       '<a href="'+root+'pages/loyalty.html">My Rewards</a>'+
+      '<a href="'+root+'pages/support.html">Support</a>'+
       '<a href=\"#\" onclick=\"buildPrefModal();return false;\">Preferences</a>'+
       '<a href=\"#\" onclick=\"logoutUser();return false;\" style=\"color:#f99;\">Sign Out</a>';
   } else {
@@ -954,10 +1071,42 @@ function buildNav(activePage){
 }
 
 function updateNavPrefBtn(){}
-function updateNavLoyaltyBadge(){}
+
+// Call after DB loyalty is loaded to refresh the tier badge in the nav
+async function refreshNavTier(activePage) {
+  try {
+    const lr = await RezAPI.User.loyalty();
+    if (lr.success && lr.data && lr.data.current_tier) {
+      const dbTier  = lr.data.current_tier;
+      const jsTier  = LOYALTY_TIERS.find(t => t.id === dbTier.tier_key);
+      const tier    = jsTier || null;
+      // Patch the tier badge element in the nav if present
+      const badge   = document.querySelector('.nav-tier-badge');
+      if (badge && tier) {
+        badge.style.background = tier.colorLight;
+        badge.style.color      = tier.color;
+        badge.style.borderColor= tier.color + '40';
+        badge.querySelector('span')?.setAttribute('textContent', tier.icon);
+        badge.lastChild.textContent = tier.name;
+      } else if (tier) {
+        // Re-render nav with the correct tier
+        buildNav(activePage || '');
+      }
+    }
+  } catch(e) {}
+}
 
 // ═══════════════════════════════════════════════════════════════
 // ADMIN AUTH
 // ═══════════════════════════════════════════════════════════════
-function isAdmin(){ try{return localStorage.getItem('sb_admin')==='1';}catch(e){return false;} }
-function logoutAdmin(){ try{localStorage.removeItem('sb_admin');}catch(e){} window.location.href='../index.html'; }
+function isAdmin(){
+  // Check PHP-session-based admin cache (set by admin.html after admin_login)
+  try{ if(typeof RezAPI!=='undefined' && RezAPI.Session.isAdmin()) return true; }catch(e){}
+  // Fallback: admin.html sets adm_admin_sess in localStorage after successful PHP login
+  try{ return !!JSON.parse(localStorage.getItem('adm_admin_sess')||'null'); }catch(e){ return false; }
+}
+function logoutAdmin(){
+  try{ localStorage.removeItem('adm_admin_sess'); localStorage.removeItem('adm_admin'); }catch(e){}
+  if(typeof RezAPI!=='undefined'){ try{ RezAPI.Session.clearAll(); }catch(e){} }
+  window.location.href='../index.html';
+}
