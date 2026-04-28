@@ -556,7 +556,7 @@ CREATE TABLE admin_users (
 
 -- Default admin (password: Admin@1234 — change immediately after first login)
 INSERT INTO admin_users (username, password_hash, full_name) VALUES
-('admin', '$2y$12$exampleAdminHashHere', 'RezHub Administrator');
+('admin', 'bc78e58d55cde1346e68f8e5fe588dedf62fa457aa646a500a53347faff6ee24', 'RezHub Administrator');
 
 
 -- =============================================================================
