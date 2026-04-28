@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard — RezHub</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        :root {
+            --green: #1a7a4a;
+            --green-light: #e8f5ee;
+            --red: #c0392b;
+            --red-light: #fdf2f2;
+            --blue: #1a5fa0;
+            --blue-light: #e8f0fb;
+        }
+
+        /* ── WELCOME BANNER ──────────────────────────────────── */
+        .dash-hero {
+            background: linear-gradient(135deg, var(--navy) 0%, #1a3050 100%);
+            padding: 48px 0 36px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dash-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 80% 50%, rgba(201, 169, 110, 0.12) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .dash-hero-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .dash-greeting {
+            color: #fff;
+        }
+
+        .dash-greeting .eyebrow {
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+
+        .dash-greeting h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.4rem;
+            font-weight: 500;
+            color: var(--gold);
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+
+        .dash-greeting p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .dash-hero-cta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* ── STATS ROW ───────────────────────────────────────── */
+        .dash-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 28px 0;
+        }
+
+        .dstat {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 2px 8px rgba(15, 30, 46, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .dstat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .dstat-icon .material-icons-round {
+            font-size: 22px;
+        }
+
+        .dstat-val {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--navy);
+            line-height: 1;
+        }
+
+        .dstat-lbl {
+            font-size: 0.73rem;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 3px;
+        }
+
+        /* ── CONTENT GRID ────────────────────────────────────── */
+        .dash-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        /* ── SECTION CARD ────────────────────────────────────── */
+        .dsec {
+            background: var(--white);
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 2px 8px rgba(15, 30, 46, 0.06);
+            overflow: hidden;
+        }
+
+        .dsec-hd {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dsec-hd h2 {
+            font-size: 1.05rem;
+            color: var(--navy);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dsec-hd h2 .material-icons-round {
+            font-size: 18px;
+            color: var(--gold);
+        }
+
+        .dsec-hd a {
+            font-size: 0.8rem;
+            color: var(--gold);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .dsec-hd a:hover {
+            text-decoration: underline;
+        }
+
+        .dsec-body {
+            padding: 18px 20px;
+        }
+
+        /* ── BOOKING CARD ────────────────────────────────────── */
+        .bk-card {
+            display: flex;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .bk-card:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .bk-card:first-child {
+            padding-top: 0;
+        }
+
+        .bk-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 5px;
+        }
+
+        .bk-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bk-hotel {
+            font-weight: 600;
+            color: var(--navy);
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bk-dates {
+            font-size: 0.78rem;
+            color: var(--gray-400);
+            margin-bottom: 4px;
+        }
+
+        .bk-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .bk-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.68rem;
+            font-weight: 700;
+        }
+
+        .b-upcoming {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .b-completed {
+            background: var(--gold-pale);
+            color: #7a5c1a;
+        }
+
+        .b-cancelled {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        .bk-amt {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* ── LOYALTY CARD ────────────────────────────────────── */
+        .loyalty-banner {
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+        }
+
+        .loyalty-tier-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .loyalty-sub {
+            font-size: 0.8rem;
+            opacity: 0.75;
+            margin-bottom: 12px;
+        }
+
+        .loyalty-progress-wrap {
+            margin-bottom: 8px;
+        }
+
+        .loyalty-progress-bar {
+            height: 7px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .loyalty-progress-fill {
+            height: 100%;
+            background: #fff;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+
+        .loyalty-progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+
+        .perk-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .perk-list li {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.82rem;
+            color: var(--gray-600);
+            margin-bottom: 7px;
+        }
+
+        .perk-list li .material-icons-round {
+            font-size: 15px;
+            color: var(--gold);
+        }
+
+        /* ── QUICK LINKS ─────────────────────────────────────── */
+        .quick-links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .qlink {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 9px;
+            border: 1px solid var(--gray-200);
+            text-decoration: none;
+            color: var(--navy);
+            transition: all 0.18s;
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .qlink:hover {
+            border-color: var(--gold);
+            background: var(--gold-pale);
+            color: var(--navy);
+        }
+
+        .qlink .material-icons-round {
+            font-size: 20px;
+            color: var(--gold);
+        }
+
+        /* ── RECOMMENDED ─────────────────────────────────────── */
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .rec-card {
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.18s;
+            display: block;
+        }
+
+        .rec-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(15, 30, 46, 0.1);
+        }
+
+        .rec-img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+        }
+
+        .rec-info {
+            padding: 10px 12px;
+        }
+
+        .rec-name {
+            font-weight: 600;
+            font-size: 0.84rem;
+            color: var(--navy);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rec-city {
+            font-size: 0.74rem;
+            color: var(--gray-400);
+        }
+
+        .rec-price {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-top: 4px;
+        }
+
+        /* ── NO DATA ─────────────────────────────────────────── */
+        .no-data-sm {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--gray-400);
+            font-size: 0.85rem;
+        }
+
+        .no-data-sm .material-icons-round {
+            font-size: 36px;
+            color: var(--gray-200);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        @media(max-width:900px) {
+            .dash-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .dash-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .rec-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .quick-links {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media(max-width:540px) {
+            .dash-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .rec-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="../index.html" class="logo">
+                <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+                Rez<span class="accent">Hub</span>
+            </a>
+            <nav class="nav-links"></nav>
+            <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu"></div>
+    </header>
+
+    <!-- WELCOME BANNER -->
+    <section class="dash-hero">
+        <div class="container dash-hero-inner">
+            <div class="dash-greeting">
+                <div class="eyebrow">Welcome back</div>
+                <h1 id="greetingName">Hello!</h1>
+                <p id="greetingSub">Here's what's happening with your account.</p>
+            </div>
+            <div class="dash-hero-cta">
+                <a href="search.html" class="btn btn-primary btn-lg">
+                    <span class="material-icons-round">search</span> Book a Hotel
+                </a>
+                <a href="mybookings.html" class="btn btn-outline-gold btn-lg">
+                    <span class="material-icons-round">receipt_long</span> My Bookings
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN -->
+    <main style="background:var(--gray-100);padding:0 0 40px;">
+        <div class="container">
+
+            <!-- STATS -->
+            <div class="dash-stats" id="statsRow"></div>
+
+            <!-- MAIN GRID -->
+            <div class="dash-grid">
+
+                <!-- LEFT: recent bookings + recommended -->
+                <div>
+                    <div class="dsec" style="margin-bottom:20px;">
+                        <div class="dsec-hd">
+                            <h2><span class="material-icons-round">receipt_long</span> Recent Bookings</h2>
+                            <a href="mybookings.html">View all →</a>
+                        </div>
+                        <div class="dsec-body" id="recentBookings"></div>
+                    </div>
+
+                    <div class="dsec">
+                        <div class="dsec-hd">
+                            <h2><span class="material-icons-round">hotel</span> Recommended for You</h2>
+                            <a href="search.html">Browse all →</a>
+                        </div>
+                        <div class="dsec-body">
+                            <div class="rec-grid" id="recHotels"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: loyalty + quick links -->
+                <div>
+                    <div class="dsec" style="margin-bottom:20px;">
+                        <div class="dsec-hd">
+                            <h2><span class="material-icons-round">workspace_premium</span> Loyalty Status</h2>
+                            <a href="loyalty.html">Details →</a>
+                        </div>
+                        <div class="dsec-body" id="loyaltyPanel"></div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo" style="margin-bottom:0;">
+                        <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+                        Rez<span class="accent">Hub</span>
+                    </div>
+                    <p>Your trusted partner for hotel reservations across India.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About RezHub</a></li>
+                        <li><a href="#">Careers</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow Us</h4>
+                    <ul>
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">Facebook</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">© 2026 RezHub. Made with care for Indian travellers.&nbsp;·&nbsp;<a
+                    href="admin.html" target="_blank" style="color:rgba(255,255,255,0.25);font-size:0.78rem;">Admin</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/api.js"></script>
+<script src="../js/data.js"></script>
+    <script>
+        document.getElementById('menuToggle').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('open');
+        });
+
+        requireLogin();
+        buildNav('dashboard');
+
+        const user = getUser();
+
+        (async () => {
+        // ── Fetch bookings + loyalty from DB ──────────────────────
+        const bookings = await getBookingsAsync();
+
+        function dbTierToJs(t) {
+          if (!t) return null;
+          const js = LOYALTY_TIERS.find(x => x.id === (t.tier_key || '').toLowerCase());
+          if (js) return js;
+          return {
+            id: t.tier_key||'', name: t.name||t.tier_key||'',
+            icon: t.icon||'military_tech', color: t.color_hex||'#CD7F32',
+            colorLight: t.color_light_hex||'#FDF0E6',
+            discount: t.discount_percent||0,
+            minBookings: t.min_bookings||0, minSpend: t.min_spend_inr||0,
+            perks: t.perks||[],
+          };
+        }
+        let tier = null, nextTier = null, totalBookings = 0, totalSpend = 0;
+        try {
+          const lr = await RezAPI.User.loyalty();
+          if (lr.success && lr.data) {
+            totalBookings = lr.data.total_bookings  || 0;
+            totalSpend    = lr.data.total_spend_inr || 0;
+            tier     = totalBookings > 0 ? dbTierToJs(lr.data.current_tier) : null;
+            nextTier = dbTierToJs(lr.data.next_tier);
+          }
+        } catch(e) {
+          const stats = getLoyaltyStats();
+          totalBookings = stats.totalBookings;
+          totalSpend    = stats.totalSpend;
+          tier          = getCurrentTier();
+          nextTier      = getNextTier();
+        }
+
+        // ── Greeting ──────────────────────────────────────────────
+        const firstName = user.name.split(' ')[0];
+        const hour = new Date().getHours();
+        const tod = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+        document.getElementById('greetingName').textContent = tod + ', ' + firstName + '!';
+        document.getElementById('greetingSub').textContent =
+            bookings.length
+                ? `You have ${bookings.filter(b => new Date(b.checkIn) >= new Date()).length} upcoming stay${bookings.filter(b => new Date(b.checkIn) >= new Date()).length !== 1 ? 's' : ''}.`
+                : 'Start exploring hotels across India.';
+
+        // ── Stats ─────────────────────────────────────────────────
+        const fmt = n => '₹' + Number(n || 0).toLocaleString('en-IN');
+        const paid = bookings.filter(b => b.status !== 'cancelled');
+        const upcoming = bookings.filter(b => new Date(b.checkIn) >= new Date() && b.status !== 'cancelled');
+        const totalSpent = paid.reduce((s, b) => s + (b.grandTotal || 0), 0);
+
+        document.getElementById('statsRow').innerHTML = `
+    <div class="dstat">
+      <div class="dstat-icon" style="background:var(--gold-pale);">
+        <span class="material-icons-round" style="color:var(--gold);">receipt_long</span>
+      </div>
+      <div><div class="dstat-val">${bookings.length}</div><div class="dstat-lbl">Total Bookings</div></div>
+    </div>
+    <div class="dstat">
+      <div class="dstat-icon" style="background:var(--green-light);">
+        <span class="material-icons-round" style="color:var(--green);">event_available</span>
+      </div>
+      <div><div class="dstat-val">${upcoming.length}</div><div class="dstat-lbl">Upcoming Stays</div></div>
+    </div>
+    <div class="dstat">
+      <div class="dstat-icon" style="background:var(--blue-light);">
+        <span class="material-icons-round" style="color:var(--blue);">payments</span>
+      </div>
+      <div><div class="dstat-val" style="font-size:1.4rem;">${fmt(totalSpent)}</div><div class="dstat-lbl">Total Spent</div></div>
+    </div>
+    <div class="dstat">
+      <div class="dstat-icon" style="background:var(--purple-light,#f0ebff);">
+        <span class="material-icons-round" style="color:#5c3d9e;">workspace_premium</span>
+      </div>
+      <div><div class="dstat-val" style="font-size:1.3rem;">${tier ? tier.name : 'None'}</div><div class="dstat-lbl">Loyalty Tier</div></div>
+    </div>`;
+
+        // ── Recent Bookings ───────────────────────────────────────
+        const recent = [...bookings].slice(0, 5);
+        const statusDot = { upcoming: '#1a7a4a', completed: '#c9a96e', cancelled: '#c0392b' };
+        const statusLabel = b => {
+            if (b.status === 'cancelled') return 'cancelled';
+            return new Date(b.checkIn) >= new Date() ? 'upcoming' : 'completed';
+        };
+
+        document.getElementById('recentBookings').innerHTML = recent.length
+            ? recent.map(b => {
+                const st = statusLabel(b);
+                return `<div class="bk-card">
+          <div class="bk-dot" style="background:${statusDot[st] || '#999'};"></div>
+          <div class="bk-info">
+            <div class="bk-hotel">${b.hotelName}</div>
+            <div class="bk-dates">${b.checkIn} → ${b.checkOut} · ${b.nights} night${b.nights !== 1 ? 's' : ''} · ${b.roomName || ''}</div>
+            <div class="bk-meta">
+              <span class="bk-badge b-${st}">${st.charAt(0).toUpperCase() + st.slice(1)}</span>
+              <span style="font-size:0.75rem;color:var(--gray-400);">${b.bookingId}</span>
+            </div>
+          </div>
+          <div class="bk-amt">${fmt(b.grandTotal)}</div>
+        </div>`;
+            }).join('')
+            : `<div class="no-data-sm">
+        <span class="material-icons-round">receipt_long</span>
+        No bookings yet. <a href="search.html" style="color:var(--gold);">Find a hotel →</a>
+      </div>`;
+
+        // ── Recommended Hotels ────────────────────────────────────
+        // Pick 3 hotels from states not already visited, or top rated
+        const visitedStates = new Set(bookings.map(b => b.hotelState));
+        const picks = [...hotels]
+            .filter(h => !visitedStates.has(h.state))
+            .sort((a, b) => b.rating - a.rating)
+            .slice(0, 3);
+        const recList = picks.length >= 3 ? picks : [...hotels].sort((a, b) => b.rating - a.rating).slice(0, 3);
+
+        document.getElementById('recHotels').innerHTML = recList.map(h => `
+    <a href="hotel.html?id=${h.id}" class="rec-card">
+      <img src="../${h.image}" alt="${h.name}" class="rec-img" onerror="this.src='../images/hero-bg.jpg'">
+      <div class="rec-info">
+        <div class="rec-name">${h.name}</div>
+        <div class="rec-city">${h.city}, ${h.state}</div>
+        <div class="rec-price">from ${fmt(h.price)}<span style="font-weight:400;color:var(--gray-400);font-size:0.72rem;">/night</span></div>
+      </div>
+    </a>`).join('');
+
+        // ── Loyalty Panel ─────────────────────────────────────────
+        const loyaltyEl = document.getElementById('loyaltyPanel');
+        if (!tier) {
+            loyaltyEl.innerHTML = `
+      <div style="text-align:center;padding:10px 0 16px;">
+        <div style="font-size:2rem;margin-bottom:8px;">🏅</div>
+        <div style="font-weight:600;color:var(--navy);margin-bottom:4px;">No tier yet</div>
+        <div style="font-size:0.82rem;color:var(--gray-400);margin-bottom:14px;">Complete your first booking to earn Bronze status.</div>
+        <a href="search.html" class="btn btn-primary" style="font-size:0.85rem;padding:10px 20px;">Book Now</a>
+      </div>`;
+        } else {
+            const pct = nextTier
+                ? Math.min(100, Math.round(Math.max(
+                    totalBookings / nextTier.minBookings,
+                    nextTier.minSpend > 0 ? totalSpend / nextTier.minSpend : 0
+                ) * 100))
+                : 100;
+            loyaltyEl.innerHTML = `
+      <div class="loyalty-banner" style="background:${tier.colorLight};color:${tier.color};">
+        <div class="loyalty-tier-name">${tier.name} Member</div>
+        <div class="loyalty-sub">${tier.discount}% discount on all bookings</div>
+        ${nextTier ? `
+        <div class="loyalty-progress-wrap">
+          <div class="loyalty-progress-bar">
+            <div class="loyalty-progress-fill" style="width:${pct}%;background:${tier.color};"></div>
+          </div>
+          <div class="loyalty-progress-labels">
+            <span>${tier.name}</span><span>${nextTier.name}</span>
+          </div>
+        </div>
+        <div style="font-size:0.75rem;opacity:0.75;">
+          ${nextTier.minBookings - totalBookings > 0 ? `${nextTier.minBookings - totalBookings} more booking${nextTier.minBookings - totalBookings !== 1 ? 's' : ''} to reach ${nextTier.name}` : `Almost there!`}
+        </div>` : `<div style="font-size:0.8rem;opacity:0.8;">You've reached the highest tier! 🎉</div>`}
+      </div>
+      <ul class="perk-list">
+        ${tier.perks.map(p => `<li><span class="material-icons-round">check_circle</span>${p}</li>`).join('')}
+      </ul>`;
+        }
+        refreshNavTier("dashboard");
+    })();
+    </script>
+</body>
+
+</html>
