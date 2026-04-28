@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Rewards — StayBooker</title>
+  <title>My Rewards — RezHub</title>
   <link rel="stylesheet" href="../css/styles.css">
   <style>
     /* Tier card */
@@ -131,6 +131,7 @@
   </div>
 </footer>
 
+<script src="../js/api.js"></script>
 <script src="../js/data.js"></script>
 <script>
   document.getElementById('menuToggle').addEventListener('click', () => {
@@ -139,10 +140,52 @@
   requireLogin();
   buildNav('rewards');
 
-  function render() {
-    const { totalBookings, totalSpend } = getLoyaltyStats();
-    const currentTier = getCurrentTier();
-    const nextTier = getNextTier();
+  // Convert a raw DB tier row into the shape the render templates expect
+  function dbTierToJs(t) {
+    if (!t) return null;
+    // Try JS LOYALTY_TIERS first (has colorLight already computed)
+    const js = LOYALTY_TIERS.find(x => x.id === (t.tier_key || '').toLowerCase());
+    if (js) return js;
+    // Build directly from DB fields
+    return {
+      id:         t.tier_key         || '',
+      name:       t.name             || t.tier_key || '',
+      icon:       t.icon             || 'military_tech',
+      color:      t.color_hex        || '#CD7F32',
+      colorLight: t.color_light_hex  || '#FDF0E6',
+      discount:   t.discount_percent || 0,
+      minBookings:t.min_bookings     || 0,
+      minSpend:   t.min_spend_inr    || 0,
+      perks:      t.perks            || [],
+    };
+  }
+
+  async function render() {
+    // ── Fetch live loyalty stats + tier from DB ────────────────────────────
+    let totalBookings = 0, totalSpend = 0, currentTier = null, nextTier = null;
+    try {
+      const lr = await RezAPI.User.loyalty();
+      if (lr.success && lr.data) {
+        totalBookings = lr.data.total_bookings  || 0;
+        totalSpend    = lr.data.total_spend_inr || 0;
+        currentTier   = dbTierToJs(lr.data.current_tier);
+        nextTier      = dbTierToJs(lr.data.next_tier);
+        // If user has no bookings, show no-tier state
+        if (totalBookings === 0) currentTier = null;
+      }
+    } catch(e) {
+      console.warn('loyalty API error, falling back to JS cache', e);
+      await getBookingsAsync();
+      const stats = getLoyaltyStats();
+      totalBookings = stats.totalBookings;
+      totalSpend    = stats.totalSpend;
+      currentTier   = getCurrentTier();
+      nextTier      = getNextTier();
+    }
+
+    // Pull recent bookings from DB
+    const bookingsRaw = await getBookingsAsync();
+
 
     // ── HERO ─────────────────────────────────────────
     let heroHtml = '';
@@ -230,11 +273,7 @@
     }
 
     // ── STATS ─────────────────────────────────────────
-    const totalSaved = getBookings().reduce((sum, b) => {
-      // Estimate savings (discount would have been applied at time of booking)
-      const tier = LOYALTY_TIERS.find(t => t.id === (b.tierAtBooking || ''));
-      return sum + (b.loyaltySaving || 0);
-    }, 0);
+    const totalSaved = bookingsRaw.reduce((sum, b) => sum + (b.loyaltySaving || 0), 0);
 
     const statsHtml = `
       <div class="stats-grid">
@@ -293,7 +332,7 @@
     }).join('');
 
     // ── RECENT HISTORY ────────────────────────────────
-    const bookings = getBookings().slice(0, 5);
+    const bookings = bookingsRaw.slice(0, 5);
     const historyHtml = bookings.length ? `
       <div style="background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-200);padding:28px 32px;box-shadow:var(--shadow-sm);">
         <h2 style="margin-bottom:20px;">Recent Bookings</h2>
@@ -327,6 +366,7 @@
   }
 
   render();
+  refreshNavTier('rewards');
 </script>
 </body>
 </html>
