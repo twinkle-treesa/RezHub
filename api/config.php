@@ -1,4 +1,7 @@
 <?php
+// Suppress PHP warnings/notices from breaking JSON responses
+@ini_set('display_errors', '0');
+error_reporting(0);
 // =============================================================================
 //  RezHub — Database Configuration
 //  Place this project in: C:\xampp\htdocs\RezHub-latest\
@@ -44,8 +47,15 @@ function getDB(): PDO {
 
 // ── CORS & JSON headers (call at top of every API file) ──────────────────────
 function apiHeaders(): void {
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    if ($origin) {
+        header('Access-Control-Allow-Origin: ' . $origin);
+        header('Access-Control-Allow-Credentials: true');
+    } else {
+    
+    }
     header('Content-Type: application/json; charset=utf-8');
-    header('Access-Control-Allow-Origin: *');          // tighten in production
+
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -85,6 +95,10 @@ function requireAuth(): array {
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => 'Not authenticated. Please log in.']);
         exit;
+    }
+    // Normalise: support both old session format ('id') and new ('user_id')
+    if (!isset($u['user_id']) && isset($u['id'])) {
+        $u['user_id'] = $u['id'];
     }
     return $u;
 }
