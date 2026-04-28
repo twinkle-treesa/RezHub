@@ -57,7 +57,7 @@ if ($action === 'stats') {
          FROM   vw_bookings_detail
          ORDER  BY created_at DESC
          LIMIT  10'
-    )->fetchAll() ?? [];
+    )->fetchAll();
 
     respond(true, $stats);
 }
