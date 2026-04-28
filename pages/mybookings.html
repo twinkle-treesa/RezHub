@@ -66,16 +66,36 @@
   </div>
 </footer>
 
+<script src="../js/api.js"></script>
 <script src="../js/data.js"></script>
 <script>
   document.getElementById('menuToggle').addEventListener('click', () => {
     document.getElementById('mobileMenu').classList.toggle('open');
   });
-  requireLogin();
-  buildNav('bookings');
+  // Verify PHP session
+  RezAPI.Auth.me().then(r => {
+    if (!r.success || !r.data) {
+      window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+      return;
+    }
+    saveUser({ id: r.data.user_id, user_id: r.data.user_id, name: r.data.full_name || r.data.name || r.data.email, email: r.data.email, phone: r.data.phone || '' });
+    buildNav('bookings');
+  });
+
+  // Load bookings + loyalty from DB
+  (async () => {
+    const list = document.getElementById('bookingsList');
+    list.innerHTML = '<div style="padding:60px;text-align:center;color:#64748b;"><span class="material-icons-round" style="font-size:36px;display:block;margin-bottom:12px;">sync</span>Loading your bookings…</div>';
+    try {
+      await getBookingsAsync();          // populates _bookingsCache used by getBookings()
+      window._dbBookings = getBookings(); // alias for renderBookings()
+    } catch(e) { console.error('Failed to load bookings:', e); }
+    renderBookings();
+    await renderLoyaltySummary();
+  })();
 
   function renderBookings() {
-    const bookings = getBookings();
+    const bookings = (window._dbBookings && window._dbBookings.length) ? window._dbBookings : getBookings();
     const list = document.getElementById('bookingsList');
 
     if (!bookings.length) {
@@ -92,9 +112,15 @@
     list.innerHTML = bookings.map(b => {
       const hotel = hotels.find(h => h.id === b.hotelId);
       const room = hotel?.rooms.find(r => r.id === b.roomId);
-      const isUpcoming = new Date(b.checkIn) >= new Date();
-      const statusColor = isUpcoming ? 'background:#e8f5ee;color:#1a7a4a;' : 'background:var(--gold-pale);color:#7a5c1a;';
-      const statusLabel = isUpcoming ? 'Upcoming' : 'Completed';
+      const now = new Date();
+      const checkInDate  = new Date(b.checkIn);
+      const checkOutDate = new Date(b.checkOut);
+      const isUpcoming  = checkOutDate > now;   // checkout hasn't passed yet
+      const isInStay    = checkInDate <= now && checkOutDate > now;
+      const statusColor = isUpcoming
+        ? (isInStay ? 'background:#e8f0fb;color:#1a5fa0;' : 'background:#e8f5ee;color:#1a7a4a;')
+        : 'background:var(--gold-pale);color:#7a5c1a;';
+      const statusLabel = isUpcoming ? (isInStay ? 'In-Stay' : 'Upcoming') : 'Completed';
 
       return `
         <div style="background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);margin-bottom:24px;overflow:hidden;">
@@ -201,18 +227,40 @@
 
     const msg = document.getElementById(`mod-success-${bid}`);
     msg.style.display = 'flex';
-    setTimeout(() => {
+    setTimeout(async () => {
       msg.style.display = 'none';
       toggleModify(bid);
-      renderLoyaltySummary();
+      await renderLoyaltySummary();
       renderBookings();
     }, 1500);
   }
 
-  function renderLoyaltySummary() {
-    const tier = getCurrentTier();
-    const next = getNextTier();
-    const { totalBookings, totalSpend } = getLoyaltyStats();
+  async function renderLoyaltySummary() {
+    function dbTierToJs(t) {
+      if (!t) return null;
+      const js = LOYALTY_TIERS.find(x => x.id === (t.tier_key || '').toLowerCase());
+      if (js) return js;
+      return {
+        id: t.tier_key||'', name: t.name||t.tier_key||'',
+        icon: t.icon||'military_tech', color: t.color_hex||'#CD7F32',
+        colorLight: t.color_light_hex||'#FDF0E6',
+        discount: t.discount_percent||0, perks: t.perks||[],
+        minBookings: t.min_bookings||0, minSpend: t.min_spend_inr||0,
+      };
+    }
+    let tier = null, next = null, totalBookings = 0;
+    try {
+      const lr = await RezAPI.User.loyalty();
+      if (lr.success && lr.data) {
+        totalBookings = lr.data.total_bookings || 0;
+        tier = totalBookings > 0 ? dbTierToJs(lr.data.current_tier) : null;
+        next = dbTierToJs(lr.data.next_tier);
+      }
+    } catch(e) {
+      tier          = getCurrentTier();
+      next          = getNextTier();
+      totalBookings = getLoyaltyStats().totalBookings;
+    }
     const el = document.getElementById('loyaltySummary');
     if (!el) return;
 
@@ -252,8 +300,7 @@
 
   window.toggleModify = toggleModify;
   window.saveModification = saveModification;
-
-  renderBookings();
+  // renderBookings() is called by the async DB loader above
 </script>
 </body>
 </html>
