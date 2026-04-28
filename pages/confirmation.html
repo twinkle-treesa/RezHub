@@ -93,10 +93,18 @@
   </div>
 </footer>
 
+<script src="../js/api.js"></script>
 <script src="../js/data.js"></script>
 <script>
-  requireLogin();
-  buildNav('confirm');
+  // Verify PHP session (works even if localStorage was cleared)
+  RezAPI.Auth.me().then(r => {
+    if (!r.success || !r.data) {
+      window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+    } else {
+      saveUser({ id: r.data.user_id, user_id: r.data.user_id, name: r.data.full_name || r.data.name || r.data.email, email: r.data.email, phone: r.data.phone || '' });
+      buildNav('confirm');
+    }
+  });
   document.getElementById('menuToggle').addEventListener('click', () => {
     document.getElementById('mobileMenu').classList.toggle('open');
   });
