@@ -68,7 +68,15 @@
     .hlogo-text span{color:var(--gold);}
     .rchip{padding:3px 10px;border-radius:6px;font-size:0.68rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;}
     .rchip.superadmin{background:rgba(192,57,43,0.18);color:#f08080;border:1px solid rgba(192,57,43,0.3);}
-    .rchip.hotel_manager{background:rgba(201,169,110,0.18);color:var(--gold);border:1px solid rgba(201,169,110,0.3);}
+    .msg-bubble{padding:10px 14px;border-radius:10px;font-size:0.84rem;line-height:1.5;max-width:85%;margin-bottom:8px;}
+    .msg-agent{background:var(--navy);color:#fff;margin-left:auto;border-bottom-right-radius:3px;}
+    .msg-user{background:var(--gray-100);color:var(--gray-800);margin-right:auto;border-bottom-left-radius:3px;}
+    .msg-meta{font-size:0.68rem;color:var(--gray-400);margin-bottom:12px;}
+    .msg-meta.right{text-align:right;}
+    .ticket-card{border:1px solid var(--gray-200);border-radius:10px;padding:15px 18px;margin-bottom:12px;cursor:pointer;transition:all 0.15s;background:var(--white);}
+    .ticket-card:hover{border-color:var(--gold);box-shadow:var(--shadow-sm);}
+    .ticket-card.open-t{border-left:4px solid var(--red);}
+    .ticket-card.resolved-t{border-left:4px solid var(--green);}
     .rchip.support_agent{background:rgba(26,122,74,0.18);color:#5fd49a;border:1px solid rgba(26,122,74,0.3);}
     .adm-hdr-r{display:flex;align-items:center;gap:13px;}
     .husername{font-size:0.82rem;color:rgba(255,255,255,0.5);}
@@ -210,8 +218,7 @@
     </div>
     <button class="lbtn" onclick="doLogin()"><span class="mi material-icons-round" style="vertical-align:middle;font-size:17px;">login</span> Sign In to Dashboard</button>
     <div class="lhint">
-      <strong>Super Admin:</strong> admin / StayBooker@2026<br>
-      <strong>Hotel Manager:</strong> priya / Hotel@123 &nbsp;·&nbsp; rohan / Hotel@123<br>
+      <strong>Super Admin:</strong> admin / Admin@1234<br>
       <strong>Support Agent:</strong> anjali / Support@123 &nbsp;·&nbsp; vikram / Support@123<br>
       <em style="font-size:0.72rem;">Demo accounts are auto-seeded on first load.</em>
     </div>
@@ -243,6 +250,7 @@
   <div class="mbox" id="mBox"></div>
 </div>
 
+<script src="../js/api.js"></script>
 <script src="../js/data.js"></script>
 <script>
 // ══════════════════════════════════════════════════════════
@@ -271,96 +279,124 @@ function statusBadge(s){
 }
 
 // ══════════════════════════════════════════════════════════
-// DATA
+// DATA  — in-memory caches populated from PHP API in boot()
 // ══════════════════════════════════════════════════════════
-const getAllBookings=()=>LS.get('sb_bookings',[]);
-const saveAllBookings=b=>LS.set('sb_bookings',b);
-function getAllUsers(){
-  const u=LS.get('sb_users',[]);
-  const s=LS.get('sb_user',null);
-  if(s&&!u.find(x=>x.email===s.email)) u.unshift({...s,id:'U-legacy'});
-  return u;
-}
-const getAllReviews=()=>LS.get('sb_reviews',[]);
-const saveAllReviews=r=>LS.set('sb_reviews',r);
-const getStaff=()=>LS.get('sb_staff',[]);
-const saveStaff=s=>LS.set('sb_staff',s);
-const getOverrides=()=>LS.get('sb_hotel_overrides',{});
-const saveOverrides=o=>LS.set('sb_hotel_overrides',o);
-const getAgentLog=()=>LS.get('sb_agent_log',[]);
-function addAgentLog(action,detail){
-  const sess=currentSess();
-  const log=getAgentLog();
-  log.unshift({id:'L-'+Date.now(),agent:sess.name,action,detail,at:new Date().toISOString()});
-  LS.set('sb_agent_log',log.slice(0,100));
+let _admBookings = [];
+let _admUsers    = [];
+let _admReviews  = [];
+
+// Synchronous readers — always return the in-memory cache
+const getAllBookings = () => _admBookings;
+const getAllUsers    = () => _admUsers;
+const getAllReviews  = () => _admReviews;
+
+// Writes go straight to the PHP API (and update the cache)
+async function saveAllBookings(bks) { _admBookings = bks; }  // mutations go via cancelBookingAdmin / statusChange
+async function saveAllReviews(rvs)  { _admReviews  = rvs; }
+
+const getStaff      = ()  => LS.get('adm_staff',[]);
+const saveStaff     = s   => LS.set('adm_staff', s);
+const getOverrides  = ()  => LS.get('adm_overrides',{});
+const saveOverrides = o   => LS.set('adm_overrides', o);
+const getAgentLog   = ()  => LS.get('adm_log',[]);
+function addAgentLog(action, detail) {
+  const sess = currentSess();
+  const log  = getAgentLog();
+  log.unshift({id:'L-'+Date.now(), agent:sess.name, action, detail, at:new Date().toISOString()});
+  LS.set('adm_log', log.slice(0, 100));
 }
 
 // ══════════════════════════════════════════════════════════
-// SEED
+// SEED  — only seeds admin-internal data (staff, tickets)
+//         NEVER touches sb_bookings / sb_users / sb_reviews
 // ══════════════════════════════════════════════════════════
-function seed(){
-  if(!LS.get('sb_staff',null)){
-    LS.set('sb_staff',[
-      {id:'S-001',name:'Priya Sharma',username:'priya',password:btoa('Hotel@123'),role:'hotel_manager',assignedHotelId:1,assignedHotelName:'The Leela Palace New Delhi',createdAt:'2024-10-01',active:true},
-      {id:'S-002',name:'Rohan Mehta',username:'rohan',password:btoa('Hotel@123'),role:'hotel_manager',assignedHotelId:7,assignedHotelName:'Taj Lake Palace',createdAt:'2024-10-01',active:true},
+function seed() {
+  if (!LS.get('adm_staff', null)) {
+    LS.set('adm_staff', [
       {id:'S-003',name:'Anjali Nair',username:'anjali',password:btoa('Support@123'),role:'support_agent',assignedHotelId:null,assignedHotelName:null,createdAt:'2024-10-15',active:true},
-      {id:'S-004',name:'Vikram Das',username:'vikram',password:btoa('Support@123'),role:'support_agent',assignedHotelId:null,assignedHotelName:null,createdAt:'2024-11-01',active:true},
+      {id:'S-004',name:'Vikram Das', username:'vikram', password:btoa('Support@123'),role:'support_agent',assignedHotelId:null,assignedHotelName:null,createdAt:'2024-11-01',active:true},
     ]);
   }
-  if(!LS.get('sb_bookings',null)){
-    const hh=hotels.slice(0,10);
-    const guests=[
-      {name:'Aarav Kumar',email:'aarav@gmail.com'},
-      {name:'Sneha Pillai',email:'sneha@outlook.com'},
-      {name:'Ravi Menon',email:'ravi@yahoo.in'},
-      {name:'Meera Joshi',email:'meera@gmail.com'},
-      {name:'Kiran Reddy',email:'kiran@rediffmail.com'},
-    ];
-    const bks=[];
-    const statuses=['upcoming','upcoming','upcoming','upcoming','completed','completed','completed','cancelled'];
-    for(let i=0;i<20;i++){
-      const h=hh[i%hh.length],g=guests[i%guests.length],room=h.rooms[0];
-      const nights=Math.ceil(Math.random()*4)+1;
-      const ci=new Date(); ci.setDate(ci.getDate()+(i<10?Math.ceil(Math.random()*25)+2:-(Math.ceil(Math.random()*40)+5)));
-      const co=new Date(ci); co.setDate(co.getDate()+nights);
-      const base=room.price*nights,tax=Math.round(base*0.18),gt=base+tax;
-      bks.push({bookingId:'SB-'+String(1000+i+1),hotelId:h.id,hotelName:h.name,hotelCity:h.city,hotelState:h.state,
-        roomId:room.id,roomName:room.name,guestName:g.name,email:g.email,
-        checkIn:ci.toISOString().slice(0,10),checkOut:co.toISOString().slice(0,10),nights,guests:Math.ceil(Math.random()*2)+1,
-        basePrice:base,tax,grandTotal:gt,loyaltySaving:0,status:statuses[i%statuses.length],
-        bookedAt:new Date(Date.now()-i*86400000*2.5).toISOString()});
+  if (!LS.get('adm_tickets', null)) { seedTickets(); }
+}
+
+// Fetch real data from PHP API and populate caches
+async function fetchAdminData() {
+  const _api = (function(){
+    const parts = window.location.pathname.split('/');
+    const idx   = parts.indexOf('RezHub-latest');
+    const root  = idx !== -1 ? '/' + parts.slice(0, idx + 1).join('/').replace(/^\//, '') : '';
+    return root + '/api';
+  })();
+
+  const headers = { 'Content-Type': 'application/json' };
+  try {
+    const [bkRes, rvRes, usRes] = await Promise.all([
+      fetch(_api + '/admin.php?action=bookings', { credentials:'include' }),
+      fetch(_api + '/admin.php?action=reviews',  { credentials:'include' }),
+      fetch(_api + '/admin.php?action=users',    { credentials:'include' }),
+    ]);
+    const bkData = await bkRes.json();
+    const rvData = await rvRes.json();
+    const usData = await usRes.json();
+
+    // API wraps everything under .data — bookings action nests further under .data.bookings
+    if (bkData.success && bkData.data?.bookings) {
+      _admBookings = bkData.data.bookings.map(b => ({
+        bookingId  : b.booking_id   || b.bookingId,
+        hotelId    : b.hotel_id     || b.hotelId,
+        hotelName  : b.hotel_name   || b.hotelName  || '',
+        hotelCity  : b.hotel_city   || b.hotelCity   || '',
+        hotelState : b.hotel_state  || b.hotelState  || '',
+        roomId     : b.room_id      || b.roomId,
+        roomName   : b.room_name    || b.roomName    || '',
+        guestName  : b.guest_name   || (b.first_name ? b.first_name + ' ' + b.last_name : b.guestName || ''),
+        email      : b.guest_email  || b.email       || '',
+        phone      : b.guest_phone  || b.phone       || '',
+        checkIn    : b.check_in_date|| b.checkIn,
+        checkOut   : b.check_out_date||b.checkOut,
+        nights     : Number(b.nights   || 1),
+        guests     : Number(b.guest_count || b.guests || 1),
+        basePrice  : Number(b.base_price  || b.basePrice  || 0),
+        tax        : Number(b.tax_amount  || b.tax        || 0),
+        grandTotal : Number(b.grand_total || b.grandTotal || 0),
+        loyaltySaving: Number(b.loyalty_saving || 0),
+        status     : b.status,
+        paymentId  : b.payment_id   || b.paymentId,
+        bookedAt   : b.created_at   || b.bookedAt,
+        userId     : b.user_id      || b.userId,
+        userEmail  : b.user_email   || b.userEmail  || '',
+        specialRequests: b.special_requests || b.specialRequests || '',
+      }));
     }
-    LS.set('sb_bookings',bks);
-  }
-  if(!LS.get('sb_reviews',null)){
-    const texts=[
-      'Exceptional stay! The staff was incredibly attentive and the room was spotless. The breakfast was world-class.',
-      'Good property overall but the WiFi was unreliable and check-in took over 30 minutes. Room was comfortable.',
-      'Breathtaking pool view, wonderful spa and the concierge arranged a fantastic local tour. Will definitely return!',
-      'Average experience. No welcome amenity despite Gold membership and housekeeping skipped our room on day 2.',
-      'Loved every moment. The restaurant food was outstanding and the heritage building is stunning.',
-    ];
-    const hh=hotels.slice(0,5);
-    const gs=['Aarav Kumar','Sneha Pillai','Ravi Menon','Meera Joshi','Kiran Reddy'];
-    const revs=texts.map((t,i)=>({
-      id:'RV-'+String(100+i),bookingId:'SB-'+String(1001+i*3),
-      hotelId:hh[i].id,hotelName:hh[i].name,hotelCity:hh[i].city,
-      userId:'u'+i,userName:gs[i],userEmail:gs[i].split(' ')[0].toLowerCase()+'@gmail.com',
-      rating:3+Math.round(Math.random()*2),text:t,
-      createdAt:new Date(Date.now()-i*86400000*6).toISOString(),
-      managerReply:i===2?'Thank you so much for the kind words! We are delighted you enjoyed your stay and look forward to welcoming you again.':null,
-      repliedAt:i===2?new Date(Date.now()-86400000*14).toISOString():null
-    }));
-    LS.set('sb_reviews',revs);
-  }
-  if(!LS.get('sb_users',null)){
-    LS.set('sb_users',[
-      {id:'U-001',name:'Aarav Kumar',email:'aarav@gmail.com',joinedAt:'2024-09-15T10:00:00Z'},
-      {id:'U-002',name:'Sneha Pillai',email:'sneha@outlook.com',joinedAt:'2024-10-02T14:30:00Z'},
-      {id:'U-003',name:'Ravi Menon',email:'ravi@yahoo.in',joinedAt:'2024-11-11T09:15:00Z'},
-      {id:'U-004',name:'Meera Joshi',email:'meera@gmail.com',joinedAt:'2024-12-01T16:45:00Z'},
-      {id:'U-005',name:'Kiran Reddy',email:'kiran@rediffmail.com',joinedAt:'2025-01-05T11:20:00Z'},
-    ]);
+    if (rvData.success && Array.isArray(rvData.data)) {
+      _admReviews = rvData.data.map(r => ({
+        id         : r.review_id    || r.id,
+        bookingId  : r.booking_id   || r.bookingId   || '',
+        hotelId    : r.hotel_id     || r.hotelId,
+        hotelName  : r.hotel_name   || r.hotelName   || '',
+        userId     : r.user_id      || r.userId,
+        userName   : r.reviewer_name|| r.user_name   || r.userName    || 'Guest',
+        userEmail  : r.user_email   || r.userEmail   || '',
+        rating     : Number(r.overall_rating || r.rating || 0),
+        text       : r.review_text  || r.text        || '',
+        createdAt  : r.created_at   || r.createdAt,
+        managerReply: r.manager_reply || r.managerReply || null,
+        repliedAt  : r.replied_at   || r.repliedAt   || null,
+      }));
+    }
+    if (usData.success && Array.isArray(usData.data)) {
+      _admUsers = usData.data.map(u => ({
+        id        : u.user_id   || u.id,
+        name      : u.full_name || u.name,
+        email     : u.email,
+        phone     : u.phone     || '',
+        joinedAt  : u.created_at|| u.joinedAt,
+        is_active : u.is_active !== undefined ? u.is_active : 1,
+      }));
+    }
+  } catch (e) {
+    console.warn('Admin: PHP API fetch failed, data may be empty.', e);
   }
 }
 
@@ -368,45 +404,62 @@ function seed(){
 // SESSION
 // ══════════════════════════════════════════════════════════
 function currentSess(){
-  if(LS.get('sb_admin',null)==='1') return{username:'admin',name:'Admin',role:'superadmin',assignedHotelId:null};
-  return LS.get('sb_admin_session',null);
+  if(LS.get('adm_admin',null)==='1') return{username:'admin',name:'Admin',role:'superadmin',assignedHotelId:null};
+  return LS.get('adm_admin_sess',null);
 }
 
 // ══════════════════════════════════════════════════════════
 // LOGIN / LOGOUT
 // ══════════════════════════════════════════════════════════
-function doLogin(){
+async function doLogin(){
   const u=document.getElementById('lUser').value.trim();
   const p=document.getElementById('lPass').value;
   const err=document.getElementById('lErr');
   err.classList.remove('show');
-  if(u==='admin'&&p==='StayBooker@2026'){LS.set('sb_admin','1');boot();return;}
+  // Authenticate via PHP session
+  try {
+    const _api=(function(){const pts=window.location.pathname.split('/');const idx=pts.indexOf('RezHub-latest');const root=idx!==-1?'/'+pts.slice(0,idx+1).join('/').replace(/^\//,''):'';return root+'/api';})();
+    const res  = await fetch(_api+'/auth.php?action=admin_login',{method:'POST',credentials:'include',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const json = await res.json();
+    if(json.success&&json.data){
+      LS.set('adm_admin_sess',{id:json.data.admin_id,name:json.data.full_name||json.data.username,username:json.data.username,role:'superadmin',assignedHotelId:null});
+      boot();return;
+    }
+  } catch(e){}
+  // Fallback: check local staff accounts
   const found=getStaff().find(s=>s.username===u&&s.password===btoa(p)&&s.active);
-  if(found){LS.set('sb_admin_session',{id:found.id,name:found.name,username:found.username,role:found.role,assignedHotelId:found.assignedHotelId,assignedHotelName:found.assignedHotelName});boot();return;}
+  if(found){LS.set('adm_admin_sess',{id:found.id,name:found.name,username:found.username,role:found.role,assignedHotelId:found.assignedHotelId,assignedHotelName:found.assignedHotelName});boot();return;}
   document.getElementById('lErrMsg').textContent='Invalid username or password.';
   err.classList.add('show');
   document.getElementById('lPass').value='';
 }
 
 function doLogout(){
-  LS.rm('sb_admin');LS.rm('sb_admin_session');
+  LS.rm('adm_admin');LS.rm('adm_admin_sess');
   document.getElementById('dashboard').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('lUser').value='';document.getElementById('lPass').value='';
 }
 
-function boot(){
+async function boot(){
   seed();
   const sess=currentSess();
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('dashboard').style.display='block';
-  const labels={superadmin:'Super Admin',hotel_manager:'Hotel Manager',support_agent:'Support Agent'};
+  const labels={superadmin:'Super Admin',support_agent:'Support Agent'};
   const chip=document.getElementById('rChip');
   chip.textContent=labels[sess.role]||sess.role;
   chip.className='rchip '+sess.role;
   document.getElementById('hUser').innerHTML=`Signed in as <strong>${sess.name}</strong>`;
   buildSidebar(sess.role);
-  const first={superadmin:'overview',hotel_manager:'myhotel',support_agent:'allbookings'}[sess.role];
+  // Show a loading state while fetching real data from PHP
+  const first={superadmin:'overview',support_agent:'support'}[sess.role]||'overview';
+  document.getElementById(first+'-sec') && (document.getElementById(first+'-sec').innerHTML =
+    '<div style="padding:40px;text-align:center;color:#64748b;">'+
+    '<span class="mi material-icons-round" style="font-size:36px;display:block;margin-bottom:12px;animation:spin 1s linear infinite;">sync</span>'+
+    'Loading data from database…</div>');
+  await fetchAdminData();
   showSection(first);
 }
 
@@ -422,21 +475,17 @@ const SIDEBARS={
       {id:'users',ic:'people',t:'Users'},
       {id:'staff',ic:'manage_accounts',t:'Staff Accounts'},
     ]},
+    {lbl:'Support',items:[
+      {id:'support',ic:'support_agent',t:'Support Tickets'},
+    ]},
     {lbl:'Reports',items:[
       {id:'financial',ic:'bar_chart',t:'Financial Reports'},
       {id:'roles',ic:'admin_panel_settings',t:'Roles & Perms'},
     ]},
   ],
-  hotel_manager:[
-    {lbl:'My Hotel',items:[
-      {id:'myhotel',ic:'hotel',t:'Hotel Overview'},
-      {id:'hotelbookings',ic:'receipt_long',t:'Bookings'},
-      {id:'reviews',ic:'rate_review',t:'Guest Reviews'},
-      {id:'hotelrevenue',ic:'payments',t:'Revenue'},
-    ]},
-  ],
   support_agent:[
     {lbl:'Support',items:[
+      {id:'support',ic:'support_agent',t:'Support Tickets'},
       {id:'allbookings',ic:'receipt_long',t:'All Bookings'},
       {id:'userprofiles',ic:'people',t:'User Profiles'},
       {id:'myactivity',ic:'history',t:'My Activity'},
@@ -456,8 +505,7 @@ function buildSidebar(role){
 const SECTIONS={
   overview:buildOverview,allbookings:buildAllBookings,hotels:buildHotels,
   users:buildUsers,staff:buildStaff,financial:buildFinancial,roles:buildRoles,
-  myhotel:buildMyHotel,hotelbookings:buildHotelBookings,reviews:buildReviews,
-  hotelrevenue:buildHotelRevenue,userprofiles:buildUserProfiles,myactivity:buildMyActivity,
+  userprofiles:buildUserProfiles,myactivity:buildMyActivity,support:buildSupport,
 };
 function showSection(name){
   _sect=name;
@@ -585,7 +633,7 @@ function buildHotels(){
         <td style="text-align:center;">${h.rooms.length}</td>
         <td style="font-weight:600;color:var(--gold);">${fmt(h.price)}</td>
         <td style="text-align:center;font-weight:700;">${hbks.length}</td>
-        <td><button class="btn btnsm btn-out" onclick="openHotelEdit(${h.id})">${mi('edit','font-size:12px;')} Edit</button></td>
+        <td><button class="btn btnsm btn-out" onclick="openHotelEdit('${h.id}')">${mi('edit','font-size:12px;')} Edit</button></td>
       </tr>`;
     }).join('')}
     </tbody>
@@ -594,17 +642,48 @@ function buildHotels(){
 
 function openHotelEdit(hotelId){
   const h=hotels.find(x=>x.id===hotelId); if(!h)return;
-  const o=getOverrides()[hotelId]||{};
   openModal(`<h3>Edit Hotel</h3><p class="msub">${h.name} · ${h.city}</p>
-    <div class="ff"><label>Override Image URL</label><input type="url" id="me-img" placeholder="https://… (leave blank to keep original)" value="${o.imageUrl||''}"></div>
-    <div class="ff"><label>Admin Note (internal)</label><textarea id="me-note" rows="3" placeholder="Internal note visible to admin and hotel manager…">${o.note||''}</textarea></div>
-    <div class="ff"><label>Location Note</label><input type="text" id="me-loc" placeholder="e.g. 5 min from airport" value="${o.locationNote||''}"></div>
-    <div class="mact"><button class="btn btn-out" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="saveHotelEdit(${hotelId})">${mi('save','font-size:13px;')} Save</button></div>`);
+    <div class="ff"><label>Hotel Name</label><input type="text" id="me-name" value="${h.name}"></div>
+    <div class="frow">
+      <div class="ff"><label>Base Price (₹/night)</label><input type="number" id="me-price" value="${h.price}" min="100"></div>
+      <div class="ff"><label>Stars</label><select id="me-stars">${[1,2,3,4,5].map(n=>`<option value="${n}" ${h.stars===n?'selected':''}>${n} ★</option>`).join('')}</select></div>
+    </div>
+    <div class="frow">
+      <div class="ff"><label>Rating (0-5)</label><input type="number" id="me-rating" value="${h.rating}" min="0" max="5" step="0.01"></div>
+      <div class="ff"><label>Location / Area</label><input type="text" id="me-location" value="${h.location}"></div>
+    </div>
+    <div class="ff"><label>Description</label><textarea id="me-desc" rows="3">${h.description||''}</textarea></div>
+    <div class="ff"><label>Image URL (optional override)</label><input type="url" id="me-img" placeholder="https://… (leave blank to keep original)" value="${h.image&&h.image.startsWith('http')?h.image:''}"></div>
+    <div id="heAlert" class="malert malert-err"></div>
+    <div class="mact"><button class="btn btn-out" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="saveHotelEdit('${hotelId}')">${mi('save','font-size:13px;')} Save Changes</button></div>`);
 }
-function saveHotelEdit(hotelId){
-  const ov=getOverrides();
-  ov[hotelId]={imageUrl:document.getElementById('me-img').value.trim(),note:document.getElementById('me-note').value.trim(),locationNote:document.getElementById('me-loc').value.trim(),updatedAt:new Date().toISOString()};
-  saveOverrides(ov);closeModal();showSection('hotels');
+async function saveHotelEdit(hotelId){
+  const h=hotels.find(x=>x.id===hotelId); if(!h)return;
+  const name=document.getElementById('me-name').value.trim();
+  const price=parseInt(document.getElementById('me-price').value)||0;
+  const stars=parseInt(document.getElementById('me-stars').value)||h.stars;
+  const rating=parseFloat(document.getElementById('me-rating').value)||h.rating;
+  const location=document.getElementById('me-location').value.trim();
+  const desc=document.getElementById('me-desc').value.trim();
+  const imgUrl=document.getElementById('me-img').value.trim();
+  const al=document.getElementById('heAlert');al.classList.remove('show');
+  if(!name){al.textContent='Hotel name is required.';al.classList.add('show');return;}
+  if(price<100){al.textContent='Price must be at least ₹100.';al.classList.add('show');return;}
+  if(rating<0||rating>5){al.textContent='Rating must be between 0 and 5.';al.classList.add('show');return;}
+  // Save to PHP database
+  try {
+    const _api=(function(){const pts=window.location.pathname.split('/');const idx=pts.indexOf('RezHub-latest');const root=idx!==-1?'/'+pts.slice(0,idx+1).join('/').replace(/^\//,''):'';return root+'/api';})();
+    const res = await fetch(_api+'/admin.php?action=hotel_update',{method:'POST',credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({hotel_id:hotelId,name,base_price:price,rating,location:location||h.location,description:desc||h.description})});
+    const json = await res.json();
+    if(!json.success){al.textContent=json.message||'Save failed.';al.classList.add('show');return;}
+  } catch(e){al.textContent='Network error — changes not saved.';al.classList.add('show');return;}
+  // Update in-memory hotel so table re-renders correctly
+  h.name=name; h.price=price; h.stars=stars; h.rating=rating;
+  h.location=location||h.location; h.description=desc||h.description;
+  if(imgUrl) h.image=imgUrl;
+  closeModal();showSection('hotels');
 }
 
 // ══════════════════════════════════════════════════════════
@@ -625,22 +704,39 @@ function buildUsers(){
       else if(ub.length>=6&&sp>=300000){tier='Gold';tc='bgold';}
       else if(ub.length>=3&&sp>=100000){tier='Silver';tc='bgray';}
       else if(ub.length>=1){tier='Bronze';tc='bgold';}
-      return `<tr><td style="font-weight:600;">${u.name}</td><td style="font-size:0.82rem;">${u.email}</td><td>${fmtD(u.joinedAt)}</td><td style="text-align:center;font-weight:700;">${ub.length}</td><td style="font-weight:600;color:var(--gold);">${fmt(sp)}</td><td><span class="badge ${tc}">${tier}</span></td><td><button class="btn btnsm btn-out" onclick="openProfile('${u.email}')">${mi('person','font-size:12px;')} Profile</button></td></tr>`;
+      return `<tr><td style="font-weight:600;">${u.name}</td><td style="font-size:0.82rem;">${u.email}</td><td>${fmtD(u.joinedAt)}</td><td style="text-align:center;font-weight:700;">${ub.length}</td><td style="font-weight:600;color:var(--gold);">${fmt(sp)}</td><td><span class="badge ${tc}">${tier}</span></td><td><div style="display:flex;gap:5px;"><button class="btn btnsm btn-out" onclick="openProfile('${u.email}')">${mi('person','font-size:12px;')} Profile</button><button class="btn btnsm ${u.is_active?'btn-red':'btn-green'}" onclick="toggleUser(${u.id})">${mi(u.is_active?'person_off':'person_add','font-size:12px;')} ${u.is_active?'Deactivate':'Activate'}</button></div></td></tr>`;
     }).join('')}
   </tbody></table>`:`<div class="no-data">${mi('people')}No registered users yet</div>`}
   </div>`;
 }
 
 // ══════════════════════════════════════════════════════════
+// ── SUPER ADMIN: TOGGLE USER ACTIVE
+// ══════════════════════════════════════════════════════════
+async function toggleUser(userId){
+  const _api=(function(){const pts=window.location.pathname.split('/');const idx=pts.indexOf('RezHub-latest');const root=idx!==-1?'/'+pts.slice(0,idx+1).join('/').replace(/^\//,''):'';return root+'/api';})();
+  try {
+    const res=await fetch(_api+'/admin.php?action=toggle_user',{method:'POST',credentials:'include',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:userId})});
+    const json=await res.json();
+    if(!json.success){alert(json.message||'Toggle failed.');return;}
+    // Update local cache
+    const u=_admUsers.find(x=>x.id===userId);
+    if(u) u.is_active=u.is_active?0:1;
+    showSection('users');
+  } catch(e){alert('Network error.');}
+}
+
+// ══════════════════════════════════════════════════════════
 // ── SUPER ADMIN: STAFF ACCOUNTS
 // ══════════════════════════════════════════════════════════
 function buildStaff(){
-  const staff=getStaff();
-  const rl={hotel_manager:'Hotel Manager',support_agent:'Support Agent'};
-  const rc={hotel_manager:'bgold',support_agent:'bgreen'};
+  const staff=getStaff().filter(s=>s.role==='support_agent');
+  const rl={support_agent:'Support Agent'};
+  const rc={support_agent:'bgreen'};
   return `
-  <h1 class="ptitle">Staff Accounts</h1><p class="psub">Manage hotel managers and support agents</p>
-  <div style="margin-bottom:14px;"><button class="btn btn-gold" onclick="openCreateStaff()">${mi('person_add','font-size:14px;')} Create Staff Account</button></div>
+  <h1 class="ptitle">Staff Accounts</h1><p class="psub">Manage support agents (${staff.length} active)</p>
+  <div style="margin-bottom:14px;"><button class="btn btn-gold" onclick="openCreateStaff()">${mi('person_add','font-size:14px;')} Add Support Agent</button></div>
   <div class="card">
   ${staff.length?`<table><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Assigned Hotel</th><th>Created</th><th>Status</th><th>Actions</th></tr></thead><tbody>
     ${staff.map(s=>`<tr>
@@ -660,39 +756,24 @@ function buildStaff(){
 }
 
 function openCreateStaff(){
-  const hopts=hotels.map(h=>`<option value="${h.id}">${h.name} — ${h.city}</option>`).join('');
-  openModal(`<h3>Create Staff Account</h3><p class="msub">Add a hotel manager or support agent</p>
+  openModal(`<h3>Add Support Agent</h3><p class="msub">Create a new support agent account</p>
     <div id="csAlert" class="malert malert-err"></div>
     <div class="frow">
-      <div class="ff"><label>Full Name</label><input type="text" id="cs-n" placeholder="e.g. Priya Sharma"></div>
-      <div class="ff"><label>Username</label><input type="text" id="cs-u" placeholder="e.g. priya" autocomplete="off"></div>
+      <div class="ff"><label>Full Name</label><input type="text" id="cs-n" placeholder="e.g. Anjali Nair"></div>
+      <div class="ff"><label>Username</label><input type="text" id="cs-u" placeholder="e.g. anjali" autocomplete="off"></div>
     </div>
-    <div class="frow">
-      <div class="ff"><label>Password</label><input type="password" id="cs-p" placeholder="Min 6 characters"></div>
-      <div class="ff"><label>Role</label><select id="cs-r" onchange="toggleHotelField(this.value)">
-        <option value="">Select role…</option>
-        <option value="hotel_manager">Hotel Manager</option>
-        <option value="support_agent">Support Agent</option>
-      </select></div>
-    </div>
-    <div class="ff" id="cs-hw" style="display:none;"><label>Assign Hotel</label><select id="cs-h"><option value="">Select hotel…</option>${hopts}</select></div>
-    <div class="mact"><button class="btn btn-out" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="createStaff()">${mi('person_add','font-size:13px;')} Create</button></div>`);
+    <div class="ff"><label>Password</label><input type="password" id="cs-p" placeholder="Min 6 characters"></div>
+    <div class="mact"><button class="btn btn-out" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="createStaff()">${mi('person_add','font-size:13px;')} Create Agent</button></div>`);
 }
-function toggleHotelField(r){document.getElementById('cs-hw').style.display=r==='hotel_manager'?'flex':'none';}
 function createStaff(){
   const n=document.getElementById('cs-n').value.trim(),u=document.getElementById('cs-u').value.trim(),
-    p=document.getElementById('cs-p').value,r=document.getElementById('cs-r').value;
+    p=document.getElementById('cs-p').value;
   const al=document.getElementById('csAlert');al.classList.remove('show');
-  if(!n||!u||!p||!r){al.textContent='All fields are required.';al.classList.add('show');return;}
+  if(!n||!u||!p){al.textContent='All fields are required.';al.classList.add('show');return;}
   if(p.length<6){al.textContent='Password must be at least 6 characters.';al.classList.add('show');return;}
   const staff=getStaff();
   if(staff.find(s=>s.username===u)){al.textContent='Username already taken.';al.classList.add('show');return;}
-  let ahId=null,ahName=null;
-  if(r==='hotel_manager'){
-    const sel=document.getElementById('cs-h');ahId=parseInt(sel.value)||null;ahName=sel.options[sel.selectedIndex]?.text.split(' — ')[0]||null;
-    if(!ahId){al.textContent='Please assign a hotel.';al.classList.add('show');return;}
-  }
-  staff.push({id:'S-'+Date.now(),name:n,username:u,password:btoa(p),role:r,assignedHotelId:ahId,assignedHotelName:ahName,createdAt:new Date().toISOString().slice(0,10),active:true});
+  staff.push({id:'S-'+Date.now(),name:n,username:u,password:btoa(p),role:'support_agent',assignedHotelId:null,assignedHotelName:null,createdAt:new Date().toISOString().slice(0,10),active:true});
   saveStaff(staff);closeModal();showSection('staff');
 }
 function toggleStaff(id){const s=getStaff(),x=s.find(a=>a.id===id);if(x){x.active=!x.active;saveStaff(s);showSection('staff');}}
@@ -756,16 +837,13 @@ function buildFinancial(){
 function buildRoles(){
   const defs=[
     {role:'superadmin',name:'Super Admin',ic:'shield',c:'var(--red)',bg:'var(--red-light)',cred:'admin / StayBooker@2026',perms:[
-      {y:1,t:'View all bookings & revenue platform-wide'},{y:1,t:'Manage all hotel listings (edit, images, notes)'},{y:1,t:'View & manage all user accounts'},
-      {y:1,t:'Create / deactivate / remove staff accounts'},{y:1,t:'Access full financial reports (gross, net, GST)'},{y:1,t:'View roles & permissions'},
-    ]},
-    {role:'hotel_manager',name:'Hotel Manager',ic:'hotel',c:'#7a5c1a',bg:'var(--gold-pale)',cred:'priya / Hotel@123 · rohan / Hotel@123',perms:[
-      {y:1,t:'View all bookings for their assigned hotel'},{y:1,t:'Update hotel image URL and add notes'},{y:1,t:'View and reply to guest reviews'},
-      {y:1,t:'View revenue breakdown for their hotel'},{y:0,t:'Access other hotels or platform-wide data'},{y:0,t:'Modify user accounts or bookings'},
+      {y:1,t:'View all bookings & revenue platform-wide'},{y:1,t:'Edit all hotel listings (name, price, stars, rating)'},{y:1,t:'View & manage all user accounts'},
+      {y:1,t:'Create / deactivate / remove support agent accounts'},{y:1,t:'Access full financial reports (gross, net, GST)'},{y:1,t:'View and manage all support tickets'},
     ]},
     {role:'support_agent',name:'Support Agent',ic:'support_agent',c:'var(--green)',bg:'var(--green-light)',cred:'anjali / Support@123 · vikram / Support@123',perms:[
-      {y:1,t:'View all bookings across all hotels'},{y:1,t:'Modify booking dates (upcoming only)'},{y:1,t:'Cancel bookings on behalf of guests'},
-      {y:1,t:'View user profiles and booking histories'},{y:1,t:'Agent activity log for audit trail'},{y:0,t:'View financial reports or revenue data'},
+      {y:1,t:'Handle refund & cancellation requests from guests'},{y:1,t:'Send messages to users via support tickets'},
+      {y:1,t:'Modify booking dates on behalf of guests (upcoming only)'},{y:1,t:'Cancel bookings on behalf of guests'},
+      {y:1,t:'View user profiles and full booking histories'},{y:0,t:'View financial reports or edit hotel listings'},
     ]},
   ];
   const sess=currentSess();
@@ -788,200 +866,309 @@ function buildRoles(){
 }
 
 // ══════════════════════════════════════════════════════════
-// ── HOTEL MANAGER: MY HOTEL
+// ── SUPPORT TICKETS / MESSAGING SYSTEM
 // ══════════════════════════════════════════════════════════
-function buildMyHotel(){
-  const sess=currentSess();
-  const h=hotels.find(x=>x.id===sess.assignedHotelId);
-  if(!h) return `<div class="no-data">${mi('hotel')}No hotel assigned to your account.</div>`;
-  const ov=getOverrides()[h.id]||{};
-  const bks=getAllBookings().filter(b=>b.hotelId===h.id);
-  const revPaid=bks.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+(b.grandTotal||0),0);
-  const revs=getAllReviews().filter(r=>String(r.hotelId)===String(h.id));
-  const avgR=revs.length?Math.round(revs.reduce((s,r)=>s+r.rating,0)/revs.length*10)/10:h.rating;
-  const imgSrc=ov.imageUrl||('../'+h.image);
-  return `
-  <h1 class="ptitle">${h.name}</h1><p class="psub">${h.location} · ${h.city}, ${h.state}</p>
-  <div class="sgrid">
-    <div class="scard"><div class="sicon" style="background:var(--green-light);">${mi('payments','color:var(--green);font-size:20px;')}</div><div class="sval">${fmt(revPaid)}</div><div class="slbl">Total Revenue</div></div>
-    <div class="scard"><div class="sicon" style="background:var(--gold-pale);">${mi('receipt_long','color:var(--gold);font-size:20px;')}</div><div class="sval">${bks.length}</div><div class="slbl">Total Bookings</div></div>
-    <div class="scard"><div class="sicon" style="background:var(--blue-light);">${mi('star','color:var(--blue);font-size:20px;')}</div><div class="sval">${avgR}</div><div class="slbl">Avg Rating</div><div class="ssub" style="color:var(--gold);">${'★'.repeat(Math.round(avgR))}</div></div>
-    <div class="scard"><div class="sicon" style="background:var(--purple-light);">${mi('rate_review','color:var(--purple);font-size:20px;')}</div><div class="sval">${revs.filter(r=>!r.managerReply).length}</div><div class="slbl">Reviews Awaiting Reply</div></div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-    <div class="card"><div class="card-hd"><h2>${mi('image')} Hotel Image</h2><button class="btn btnsm btn-gold" onclick="openImgEdit(${h.id})">${mi('edit','font-size:12px;')} Update Image</button></div>
-      <div style="padding:15px 18px;">
-        <img src="${imgSrc}" alt="${h.name}" style="width:100%;height:175px;object-fit:cover;border-radius:8px;margin-bottom:10px;" onerror="this.src='../images/hero-bg.jpg'">
-        ${ov.imageUrl?`<p style="font-size:0.77rem;color:var(--green);">${mi('check_circle','font-size:13px;vertical-align:middle;')} Custom image active</p>`:`<p style="font-size:0.77rem;color:var(--gray-400);">Default image in use. Click "Update Image" to set a custom URL.</p>`}
-      </div>
-    </div>
-   <div class="card"><div class="card-hd"><h2>${mi('info')} Hotel Details</h2><button class="btn btnsm btn-red" onclick="deleteHotel('${h.id}')">${mi('delete','font-size:12px;')} Delete Hotel</button></div>
-      <div style="padding:15px 18px;font-size:0.85rem;line-height:2.1;">
-        <div><strong>Stars:</strong> <span style="color:var(--gold);">${'★'.repeat(h.stars)}</span></div>
-        <div><strong>Base Price:</strong> ${fmt(h.price)} / night</div>
-        <div><strong>Guest Reviews:</strong> ${h.reviews.toLocaleString()}</div>
-        <div><strong>Room Types:</strong> ${h.rooms.map(r=>r.name).join(', ')}</div>
-        ${ov.note?`<div style="margin-top:10px;padding:10px 12px;background:var(--gold-pale);border-radius:6px;border-left:3px solid var(--gold);font-size:0.83rem;"><strong>Admin Note:</strong> ${ov.note}</div>`:''}
-        ${ov.locationNote?`<div style="margin-top:7px;"><strong>Location Note:</strong> ${ov.locationNote}</div>`:''}
-      </div>
-    </div>
-  </div>
-  <div class="card"><div class="card-hd"><h2>${mi('meeting_room')} Room Types</h2></div>
-    <table><thead><tr><th>Room</th><th>Type</th><th>Price/Night</th><th>Max Guests</th></tr></thead><tbody>
-    ${h.rooms.map(r=>`<tr><td style="font-weight:600;">${r.name}</td><td><span class="badge bgray">${r.type||'Standard'}</span></td><td style="font-weight:700;color:var(--gold);">${fmt(r.price)}</td><td style="text-align:center;">${r.maxGuests||2}</td></tr>`).join('')}
-    </tbody></table>
-  </div>`;
-}
-function deleteHotel(id){
-  const h=hotels.find(x=>x.id===id);
-  if(!h) return;
-  if(!confirm(`Delete "${h.name}"?\n\nThis removes all bookings and reviews for this hotel. Cannot be undone.`)) return;
-  hotels.splice(hotels.indexOf(h),1);
-  saveAllBookings(getAllBookings().filter(b=>b.hotelId!==id));
-  saveAllReviews(getAllReviews().filter(r=>String(r.hotelId)!==String(id)));
-  const ov=getOverrides(); delete ov[id]; saveOverrides(ov);
-  showSection('myhotel');
+const TICKET_TYPES=['Refund Request','Booking Cancellation','Date Change Request','Payment Issue','General Enquiry','Complaint'];
+const getTickets=()=>LS.get('adm_tickets',[]);
+const saveTickets=t=>LS.set('adm_tickets',t);
+
+function seedTickets(){
+  if(LS.get('adm_tickets',null)) return;
+  const bks=getAllBookings();
+  const sample=[
+    {id:'TK-001',userEmail:'aarav@gmail.com',userName:'Aarav Kumar',type:'Refund Request',bookingId:bks[4]?.bookingId||'SB-1005',
+     subject:'Refund for cancelled booking',status:'open',priority:'high',
+     createdAt:new Date(Date.now()-3*86400000).toISOString(),
+     messages:[
+       {from:'user',text:'Hi, I cancelled my booking (SB-1005) due to a medical emergency. I would like a full refund as it was within the free cancellation window. Please help.',at:new Date(Date.now()-3*86400000).toISOString()},
+     ]},
+    {id:'TK-002',userEmail:'sneha@outlook.com',userName:'Sneha Pillai',type:'Date Change Request',bookingId:bks[1]?.bookingId||'SB-1002',
+     subject:'Change check-in date',status:'open',priority:'medium',
+     createdAt:new Date(Date.now()-1*86400000).toISOString(),
+     messages:[
+       {from:'user',text:'I need to push my check-in date by 2 days. Can you please update it from the 10th to 12th May? The booking is SB-1002.',at:new Date(Date.now()-1*86400000).toISOString()},
+     ]},
+    {id:'TK-003',userEmail:'ravi@yahoo.in',userName:'Ravi Menon',type:'General Enquiry',bookingId:null,
+     subject:'Early check-in availability',status:'resolved',priority:'low',
+     createdAt:new Date(Date.now()-7*86400000).toISOString(),
+     messages:[
+       {from:'user',text:'Is early check-in available at The Leela Palace? My flight arrives at 8am.',at:new Date(Date.now()-7*86400000).toISOString()},
+       {from:'agent',agentName:'Anjali Nair',text:'Hello Ravi! Early check-in at The Leela Palace is subject to availability and can be requested at the front desk on arrival. I have added a note to your booking. Please arrive and check with the concierge — they are usually very accommodating for Platinum guests.',at:new Date(Date.now()-6*86400000).toISOString()},
+     ]},
+  ];
+  saveTickets(sample);
 }
 
-function openImgEdit(hotelId){
-  const ov=getOverrides()[hotelId]||{};
-  openModal(`<h3>Update Hotel Image</h3><p class="msub">Enter a new public image URL</p>
-    <div class="ff"><label>Image URL</label><input type="url" id="hi-u" placeholder="https://…" value="${ov.imageUrl||''}" oninput="prevImg(this.value)"></div>
-    <div id="hi-prev" style="display:${ov.imageUrl?'block':'none'};margin-bottom:12px;"><img id="hi-pimg" src="${ov.imageUrl||''}" style="width:100%;height:155px;object-fit:cover;border-radius:8px;" onerror="this.style.display='none'"></div>
+function buildSupport(){
+  seedTickets();
+  const tickets=getTickets();
+  const sess=currentSess();
+  const open=tickets.filter(t=>t.status==='open');
+  const resolved=tickets.filter(t=>t.status==='resolved');
+  const priorityBadge=p=>({high:`<span class="badge bred">High</span>`,medium:`<span class="badge bgold">Medium</span>`,low:`<span class="badge bgray">Low</span>`}[p]||'');
+  const typeBadge=t=>`<span class="badge bblue" style="font-size:0.65rem;">${t}</span>`;
+  return `
+  <h1 class="ptitle">Support Tickets</h1><p class="psub">${open.length} open · ${resolved.length} resolved</p>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+    <div class="fbar" style="margin-bottom:0;">
+      <input class="finput" placeholder="🔍 Search tickets…" oninput="filterTickets(this.value)" style="min-width:200px;">
+      <select class="fsel" onchange="filterTicketStatus(this.value)">
+        <option value="">All Tickets</option>
+        <option value="open">Open</option>
+        <option value="resolved">Resolved</option>
+      </select>
+    </div>
+    <button class="btn btn-gold" onclick="openNewTicketAdmin()">${mi('add','font-size:14px;')} New Ticket</button>
+  </div>
+  <div id="ticketList">
+  ${tickets.length?tickets.map(t=>`
+    <div class="ticket-card ${t.status}-t" data-status="${t.status}" data-search="${(t.subject+t.userName+t.userEmail+t.type).toLowerCase()}" onclick="openTicketChat('${t.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;">
+            <span style="font-weight:700;font-size:0.88rem;color:var(--navy);">${t.subject}</span>
+            ${typeBadge(t.type)}
+            ${priorityBadge(t.priority)}
+            ${t.status==='open'?`<span class="badge bred">Open</span>`:`<span class="badge bgreen">Resolved</span>`}
+          </div>
+          <div style="font-size:0.79rem;color:var(--gray-400);">
+            ${mi('person','font-size:13px;vertical-align:middle;')} <strong style="color:var(--gray-700);">${t.userName}</strong> · ${t.userEmail}
+            ${t.bookingId?` · ${mi('receipt_long','font-size:13px;vertical-align:middle;')} ${t.bookingId}`:''}
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:0.77rem;color:var(--gray-400);">${fmtDT(t.createdAt)}</div>
+          <div style="font-size:0.75rem;color:var(--gray-600);margin-top:3px;">${t.messages.length} message${t.messages.length!==1?'s':''}</div>
+        </div>
+      </div>
+      ${t.messages.length&&t.messages[t.messages.length-1].from==='user'&&t.status==='open'?`<div style="margin-top:8px;font-size:0.8rem;color:var(--red);display:flex;align-items:center;gap:5px;">${mi('mark_chat_unread','font-size:14px;')} Awaiting agent reply</div>`:''}
+    </div>`).join(''):`<div class="no-data">${mi('support_agent')}No support tickets yet.</div>`}
+  </div>`;
+}
+
+function filterTickets(q){
+  q=q.toLowerCase();
+  document.querySelectorAll('.ticket-card').forEach(c=>c.style.display=c.dataset.search.includes(q)?'':'none');
+}
+function filterTicketStatus(v){
+  document.querySelectorAll('.ticket-card').forEach(c=>c.style.display=(!v||c.dataset.status===v)?'':'none');
+}
+
+function openTicketChat(tid){
+  const t=getTickets().find(x=>x.id===tid); if(!t)return;
+  const sess=currentSess();
+  const msgs=t.messages.map(m=>{
+    const isAgent=m.from==='agent';
+    return `<div style="display:flex;flex-direction:column;align-items:${isAgent?'flex-end':'flex-start'};">
+      <div class="msg-bubble ${isAgent?'msg-agent':'msg-user'}">${m.text}</div>
+      <div class="msg-meta ${isAgent?'right':''}">${isAgent?`${m.agentName||sess.name} · `:''}${fmtDT(m.at)}</div>
+    </div>`;
+  }).join('');
+
+  const relatedBk=t.bookingId?getAllBookings().find(b=>b.bookingId===t.bookingId):null;
+
+  openModal(`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px;">
+      <div>
+        <h3 style="margin-bottom:3px;">${t.subject}</h3>
+        <p class="msub">${t.type} · ${mi('person','font-size:13px;vertical-align:middle;')} ${t.userName} &lt;${t.userEmail}&gt;</p>
+      </div>
+      <span class="badge ${t.status==='open'?'bred':'bgreen'}">${t.status==='open'?'Open':'Resolved'}</span>
+    </div>
+    ${relatedBk?`<div style="background:var(--gold-pale);border-radius:8px;padding:10px 13px;margin-bottom:13px;font-size:0.82rem;border-left:3px solid var(--gold);">
+      ${mi('receipt_long','font-size:14px;vertical-align:middle;color:var(--gold);')}
+      <strong>Booking:</strong> ${relatedBk.bookingId} · ${relatedBk.hotelName} · ${fmtD(relatedBk.checkIn)} – ${fmtD(relatedBk.checkOut)} · ${fmt(relatedBk.grandTotal)}
+      <span class="badge ${bkStatus(relatedBk)==='cancelled'?'bred':'bgreen'}" style="margin-left:6px;">${bkStatus(relatedBk)}</span>
+      ${t.type.includes('Refund')||t.type.includes('Cancellation')?`<div style="margin-top:6px;">
+        <button class="btn btnsm btn-red" onclick="handleRefund('${t.bookingId}','${tid}')">${mi('currency_rupee','font-size:12px;')} Process Refund</button>
+        ${bkStatus(relatedBk)!=='cancelled'?`<button class="btn btnsm btn-out" onclick="cancelFromTicket('${t.bookingId}','${tid}')" style="margin-left:5px;">${mi('cancel','font-size:12px;')} Cancel Booking</button>`:''}
+      </div>`:''}
+    </div>`:''}
+    <div id="chatMsgs" style="max-height:260px;overflow-y:auto;padding:4px 0;margin-bottom:12px;border:1px solid var(--gray-200);border-radius:8px;padding:12px;">
+      ${msgs||`<p style="text-align:center;color:var(--gray-400);font-size:0.83rem;">No messages yet</p>`}
+    </div>
+    ${t.status==='open'?`
+    <div class="ff"><label>Reply</label><textarea id="agentReply" rows="3" placeholder="Type your reply to ${t.userName}…"></textarea></div>
     <div class="mact">
-      <button class="btn btn-out" onclick="closeModal()">Cancel</button>
-      ${ov.imageUrl?`<button class="btn btn-red" onclick="clrImg(${hotelId})">${mi('delete','font-size:13px;')} Remove</button>`:''}
-      <button class="btn btn-gold" onclick="saveImg(${hotelId})">${mi('save','font-size:13px;')} Save</button>
-    </div>`);
+      <button class="btn btn-out" onclick="closeModal()">Close</button>
+      <button class="btn btn-out" onclick="resolveTicket('${tid}')">${mi('check_circle','font-size:13px;')} Mark Resolved</button>
+      <button class="btn btn-gold" onclick="sendAgentReply('${tid}')">${mi('send','font-size:13px;')} Send Reply</button>
+    </div>`:`
+    <div class="mact">
+      <button class="btn btn-out" onclick="closeModal()">Close</button>
+      <button class="btn btn-out" onclick="reopenTicket('${tid}')">${mi('refresh','font-size:13px;')} Reopen</button>
+    </div>`}
+  `);
+  // Scroll chat to bottom
+  setTimeout(()=>{const c=document.getElementById('chatMsgs');if(c)c.scrollTop=c.scrollHeight;},50);
 }
-function prevImg(v){const p=document.getElementById('hi-prev'),i=document.getElementById('hi-pimg');if(v){p.style.display='block';i.src=v;i.style.display='block';}else p.style.display='none';}
-function saveImg(id){const u=document.getElementById('hi-u').value.trim();const ov=getOverrides();ov[id]={...(ov[id]||{}),imageUrl:u,updatedAt:new Date().toISOString()};saveOverrides(ov);closeModal();showSection('myhotel');}
-function clrImg(id){const ov=getOverrides();if(ov[id])delete ov[id].imageUrl;saveOverrides(ov);closeModal();showSection('myhotel');}
 
-// ══════════════════════════════════════════════════════════
-// ── HOTEL MANAGER: BOOKINGS
-// ══════════════════════════════════════════════════════════
-function buildHotelBookings(){
+function sendAgentReply(tid){
+  const txt=document.getElementById('agentReply').value.trim();
+  if(!txt)return;
   const sess=currentSess();
-  const h=hotels.find(x=>x.id===sess.assignedHotelId);
-  if(!h) return `<div class="no-data">${mi('hotel')}No hotel assigned.</div>`;
-  const bks=getAllBookings().filter(b=>b.hotelId===h.id);
-  return `
-  <h1 class="ptitle">Bookings</h1><p class="psub">${bks.length} bookings for ${h.name}</p>
-  <div class="fbar">
-    <input class="finput" placeholder="🔍 Search guest, booking ID…" oninput="fTbl('hbT',this.value)" style="min-width:200px;">
-    <select class="fsel" onchange="fAttr('hbT','data-st',this.value)">
-      <option value="">All Status</option>
-      <option value="upcoming">Upcoming</option><option value="active">Active</option>
-      <option value="completed">Completed</option><option value="cancelled">Cancelled</option>
-    </select>
-  </div>
-  <div class="card">
-  ${bks.length?`<table id="hbT"><thead><tr><th>Booking ID</th><th>Guest</th><th>Room</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Total</th><th>Status</th></tr></thead><tbody>
-    ${bks.map(b=>`<tr data-st="${bkStatus(b)}"><td style="font-weight:700;font-size:0.77rem;color:var(--gold);">${b.bookingId}</td><td><div style="font-weight:600;">${b.guestName||'—'}</div><div style="font-size:0.72rem;color:var(--gray-400);">${b.email||''}</div></td><td style="font-size:0.82rem;">${b.roomName||'—'}</td><td>${fmtD(b.checkIn)}</td><td>${fmtD(b.checkOut)}</td><td style="text-align:center;">${b.nights||1}</td><td style="font-weight:700;">${fmt(b.grandTotal)}</td><td>${statusBadge(bkStatus(b))}</td></tr>`).join('')}
-  </tbody></table>`:`<div class="no-data">${mi('receipt_long')}No bookings for this property yet</div>`}
-  </div>`;
+  const tickets=getTickets(),i=tickets.findIndex(t=>t.id===tid);
+  if(i===-1)return;
+  tickets[i].messages.push({from:'agent',agentName:sess.name,text:txt,at:new Date().toISOString()});
+  saveTickets(tickets);
+  addAgentLog('Replied to Ticket',`${tid}: reply sent to ${tickets[i].userName}`);
+  closeModal();showSection('support');
 }
 
-// ══════════════════════════════════════════════════════════
-// ── HOTEL MANAGER: REVIEWS
-// ══════════════════════════════════════════════════════════
-function buildReviews(){
+function resolveTicket(tid){
+  const tickets=getTickets(),i=tickets.findIndex(t=>t.id===tid);
+  if(i===-1)return;
+  tickets[i].status='resolved';
+  saveTickets(tickets);
+  addAgentLog('Ticket Resolved',`${tid} marked as resolved`);
+  closeModal();showSection('support');
+}
+
+function reopenTicket(tid){
+  const tickets=getTickets(),i=tickets.findIndex(t=>t.id===tid);
+  if(i===-1)return;
+  tickets[i].status='open';
+  saveTickets(tickets);
+  closeModal();showSection('support');
+}
+
+function handleRefund(bookingId,tid){
+  if(!confirm(`Process refund for booking ${bookingId}?\n\nThis will mark the booking as cancelled and log the refund action.`))return;
+  const _api=(function(){const pts=window.location.pathname.split('/');const idx=pts.indexOf('RezHub-latest');const root=idx!==-1?'/'+pts.slice(0,idx+1).join('/').replace(/^\//,''):'';return root+'/api';})();
+  fetch(_api+'/bookings.php',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'cancel',booking_id:bookingId})}).catch(e=>console.warn(e));
+  const bks=getAllBookings(),bi=bks.findIndex(b=>b.bookingId===bookingId);
+  if(bi!==-1){bks[bi].status='cancelled';bks[bi].refunded=true;}
+  const tickets=getTickets(),ti=tickets.findIndex(t=>t.id===tid);
   const sess=currentSess();
-  const h=hotels.find(x=>x.id===sess.assignedHotelId);
-  const revs=getAllReviews().filter(r=>String(r.hotelId)===String(sess.assignedHotelId));
-  const unr=revs.filter(r=>!r.managerReply).length;
-  return `
-  <h1 class="ptitle">Guest Reviews</h1><p class="psub">${revs.length} reviews for ${h?.name||'your hotel'} · <span style="color:${unr?'var(--red)':'var(--green)'};">${unr} awaiting reply</span></p>
-  <div class="card">
-  ${revs.length?revs.map(r=>`<div class="review-item">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold);font-size:0.9rem;">${r.userName[0]}</div>
-        <div><div style="font-weight:600;font-size:0.9rem;">${r.userName}</div><div style="font-size:0.74rem;color:var(--gray-400);">${fmtD(r.createdAt)}</div></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:9px;">
-        <span style="color:var(--gold);">${'★'.repeat(r.rating)}<span style="color:var(--gray-200);">${'★'.repeat(5-r.rating)}</span></span>
-        <span style="font-weight:700;color:var(--navy);">${r.rating}/5</span>
-        ${!r.managerReply?`<span class="badge bred">Awaiting Reply</span>`:`<span class="badge bgreen">Replied</span>`}
-      </div>
-    </div>
-    <p style="font-size:0.875rem;color:var(--gray-700);margin:9px 0;line-height:1.65;">${r.text||'<em style="color:var(--gray-400);">No written comment</em>'}</p>
-    ${r.managerReply?`<div class="reply-box"><strong style="color:var(--navy);font-size:0.79rem;">Your Reply</strong> <span style="font-size:0.72rem;color:var(--gray-400);">(${fmtDT(r.repliedAt)})</span><p style="margin-top:4px;font-size:0.84rem;">${r.managerReply}</p></div>`:''}
-    <button class="btn btnsm ${r.managerReply?'btn-out':'btn-gold'}" style="margin-top:9px;" onclick="openReply('${r.id}')">${mi(r.managerReply?'edit':'reply','font-size:12px;')} ${r.managerReply?'Edit Reply':'Reply to Guest'}</button>
-  </div>`).join(''):`<div class="no-data">${mi('rate_review')}No reviews yet for this hotel</div>`}
-  </div>`;
+  if(ti!==-1){
+    tickets[ti].messages.push({from:'agent',agentName:sess.name,
+      text:`Your refund for booking ${bookingId} has been processed. The amount will be credited to your original payment method within 5–7 business days. We apologise for any inconvenience.`,
+      at:new Date().toISOString()});
+    tickets[ti].status='resolved';
+    saveTickets(tickets);
+  }
+  addAgentLog('Refund Processed',`Booking ${bookingId} refunded and cancelled via ticket ${tid}`);
+  closeModal();showSection('support');
 }
 
-function openReply(rid){
-  const r=getAllReviews().find(x=>x.id===rid); if(!r)return;
-  openModal(`<h3>Reply to Review</h3><p class="msub">${r.userName} · ${'★'.repeat(r.rating)} · ${fmtD(r.createdAt)}</p>
-    <div style="background:var(--gray-100);border-radius:7px;padding:11px 13px;margin-bottom:14px;font-size:0.84rem;color:var(--gray-700);font-style:italic;">"${r.text||'No written comment'}"</div>
-    <div class="ff"><label>Your Reply</label><textarea id="rt" rows="4" placeholder="Write a professional, helpful response…">${r.managerReply||''}</textarea></div>
-    <div class="mact"><button class="btn btn-out" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="saveReply('${rid}')">${mi('send','font-size:13px;')} Post Reply</button></div>`);
-}
-function saveReply(rid){
-  const t=document.getElementById('rt').value.trim(); if(!t)return;
-  const revs=getAllReviews(),i=revs.findIndex(r=>r.id===rid);
-  if(i!==-1){revs[i].managerReply=t;revs[i].repliedAt=new Date().toISOString();}
-  saveAllReviews(revs);closeModal();showSection('reviews');
-}
-
-// ══════════════════════════════════════════════════════════
-// ── HOTEL MANAGER: REVENUE
-// ══════════════════════════════════════════════════════════
-function buildHotelRevenue(){
+function cancelFromTicket(bookingId,tid){
+  if(!confirm(`Cancel booking ${bookingId} on behalf of the guest?`))return;
+  const _api=(function(){const pts=window.location.pathname.split('/');const idx=pts.indexOf('RezHub-latest');const root=idx!==-1?'/'+pts.slice(0,idx+1).join('/').replace(/^\//,''):'';return root+'/api';})();
+  fetch(_api+'/bookings.php',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'cancel',booking_id:bookingId})}).catch(e=>console.warn(e));
+  const bks=getAllBookings(),bi=bks.findIndex(b=>b.bookingId===bookingId);
+  if(bi!==-1){bks[bi].status='cancelled';}
   const sess=currentSess();
-  const h=hotels.find(x=>x.id===sess.assignedHotelId);
-  if(!h) return `<div class="no-data">${mi('hotel')}No hotel assigned.</div>`;
-  const bks=getAllBookings().filter(b=>b.hotelId===h.id&&b.status!=='cancelled');
-  const rev=bks.reduce((s,b)=>s+(b.grandTotal||0),0);
-  const tax=bks.reduce((s,b)=>s+(b.tax||Math.round((b.grandTotal||0)*18/118)),0);
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const rm=Array(6).fill(0);
-  bks.forEach(b=>{const d=new Date(b.bookedAt||b.checkIn);const idx=((d.getMonth()+6)-new Date().getMonth()+12)%12;if(idx<6)rm[5-idx]+=(b.grandTotal||0);});
-  const maxR=Math.max(...rm,1);
-  const bars=rm.map((v,i)=>{const m=new Date();m.setMonth(m.getMonth()-(5-i));return `<div class="bwrap"><div class="bar" style="height:${Math.max(4,Math.round(v/maxR*100))}px;" title="${fmt(v)}"></div><div class="blbl">${months[m.getMonth()]}</div></div>`;}).join('');
-  const rRev=bks.reduce((a,b)=>{a[b.roomName]=(a[b.roomName]||0)+(b.grandTotal||0);return a;},{});
-  const maxRR=Math.max(...Object.values(rRev),1);
-  return `
-  <h1 class="ptitle">Revenue Report</h1><p class="psub">${h.name} · ${h.city}</p>
-  <div class="sgrid">
-    <div class="scard"><div class="sicon" style="background:var(--green-light);">${mi('payments','color:var(--green);font-size:20px;')}</div><div class="sval">${fmt(rev)}</div><div class="slbl">Gross Revenue</div></div>
-    <div class="scard"><div class="sicon" style="background:var(--blue-light);">${mi('account_balance','color:var(--blue);font-size:20px;')}</div><div class="sval">${fmt(rev-tax)}</div><div class="slbl">Net (excl. GST)</div></div>
-    <div class="scard"><div class="sicon" style="background:#fff8e1;">${mi('receipt','color:#f39c12;font-size:20px;')}</div><div class="sval">${fmt(tax)}</div><div class="slbl">GST Collected</div></div>
-    <div class="scard"><div class="sicon" style="background:var(--purple-light);">${mi('bar_chart','color:var(--purple);font-size:20px;')}</div><div class="sval">${bks.length?fmt(Math.round(rev/bks.length)):'₹0'}</div><div class="slbl">Avg. Booking</div></div>
-  </div>
-  <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
-    <div class="card"><div class="card-hd"><h2>${mi('bar_chart')} Last 6 Months</h2></div><div style="padding:18px;"><div class="barchart" style="height:100px;">${bars}</div></div></div>
-    <div class="card"><div class="card-hd"><h2>${mi('meeting_room')} By Room Type</h2></div>
-    <div style="padding:13px 17px;">
-      ${Object.entries(rRev).sort((a,b)=>b[1]-a[1]).map(([r,v])=>`<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:3px;"><span style="font-weight:600;">${r}</span><span style="color:var(--gold);font-weight:700;">${fmt(v)}</span></div><div style="height:5px;background:var(--gray-200);border-radius:2px;"><div style="height:100%;background:var(--gold);border-radius:2px;width:${Math.round(v/maxRR*100)}%;"></div></div></div>`).join('')||`<p style="color:var(--gray-400);font-size:0.83rem;">No data yet</p>`}
-    </div></div>
-  </div>`;
+  const tickets=getTickets(),ti=tickets.findIndex(t=>t.id===tid);
+  if(ti!==-1){
+    tickets[ti].messages.push({from:'agent',agentName:sess.name,
+      text:`Your booking ${bookingId} has been cancelled as requested. If you are eligible for a refund, it will be processed within 5–7 business days.`,
+      at:new Date().toISOString()});
+    saveTickets(tickets);
+  }
+  addAgentLog('Booking Cancelled via Ticket',`${bookingId} cancelled by support from ticket ${tid}`);
+  closeModal();showSection('support');
 }
+
+function openNewTicketAdmin(){
+  let users=getAllUsers();
+  const uOpts=users.map(u=>`<option value="${u.email}" data-name="${u.name||u.full_name||''}">${u.name||u.full_name||u.email} &lt;${u.email}&gt;</option>`).join('');
+  const bks=getAllBookings();
+  const bkOpts=bks.map(b=>`<option value="${b.bookingId}">${b.bookingId} · ${b.hotelName} · ${b.guestName}</option>`).join('');
+  openModal(`<h3>Create Support Ticket</h3><p class="msub">Open a ticket on behalf of a user or to initiate contact</p>
+    <div id="ntAlert" class="malert malert-err"></div>
+    <div class="ff"><label>User</label><select id="nt-user" onchange="prefillTicketUser(this)">${uOpts?`<option value="">Select user…</option>${uOpts}`:'<option value="">No registered users yet</option>'}</select></div>
+    <div class="ff"><label>Ticket Type</label><select id="nt-type">${TICKET_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div>
+    <div class="ff"><label>Priority</label><select id="nt-priority"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select></div>
+    <div class="ff"><label>Related Booking (optional)</label><select id="nt-bk"><option value="">None</option>${bkOpts}</select></div>
+    <div class="ff"><label>Subject</label><input type="text" id="nt-subj" placeholder="Brief summary of the issue"></div>
+    <div class="ff"><label>Message to User</label><textarea id="nt-msg" rows="4" placeholder="Write your message…"></textarea></div>
+    <div class="mact"><button class="btn btn-out" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="createTicketAdmin()">${mi('send','font-size:13px;')} Create & Send</button></div>`);
+}
+
+function openNewTicket(email,name){
+  const bks=getAllBookings().filter(b=>b.email===email||b.guestName===name);
+  const bkOpts=bks.map(b=>`<option value="${b.bookingId}">${b.bookingId} · ${b.hotelName}</option>`).join('');
+  openModal(`<h3>Message User</h3><p class="msub">Send a support message to ${name} &lt;${email}&gt;</p>
+    <div id="ntAlert" class="malert malert-err"></div>
+    <input type="hidden" id="nt-user" value="${email}" data-name="${name}">
+    <div class="ff"><label>Ticket Type</label><select id="nt-type">${TICKET_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></div>
+    <div class="ff"><label>Priority</label><select id="nt-priority"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select></div>
+    ${bks.length?`<div class="ff"><label>Related Booking (optional)</label><select id="nt-bk"><option value="">None</option>${bkOpts}</select></div>`:'<input type="hidden" id="nt-bk" value="">'}
+    <div class="ff"><label>Subject</label><input type="text" id="nt-subj" placeholder="Brief summary"></div>
+    <div class="ff"><label>Message</label><textarea id="nt-msg" rows="4" placeholder="Write your message to ${name}…"></textarea></div>
+    <div class="mact"><button class="btn btn-out" onclick="closeModal()">Cancel</button><button class="btn btn-gold" onclick="createTicketAdmin()">${mi('send','font-size:13px;')} Send Message</button></div>`);
+}
+
+function prefillTicketUser(sel){
+  // nothing needed, just reads value on submit
+}
+
+function createTicketAdmin(){
+  const sess=currentSess();
+  const userEl=document.getElementById('nt-user');
+  const email=userEl.tagName==='SELECT'?userEl.value:userEl.value;
+  const name=userEl.tagName==='SELECT'?(userEl.options[userEl.selectedIndex]?.text.split(' <')[0]||''):(userEl.dataset.name||email);
+  const type=document.getElementById('nt-type').value;
+  const priority=document.getElementById('nt-priority').value;
+  const bkId=document.getElementById('nt-bk')?.value||'';
+  const subj=document.getElementById('nt-subj').value.trim();
+  const msg=document.getElementById('nt-msg').value.trim();
+  const al=document.getElementById('ntAlert');al.classList.remove('show');
+  if(!email){al.textContent='Please select a user.';al.classList.add('show');return;}
+  if(!subj){al.textContent='Subject is required.';al.classList.add('show');return;}
+  if(!msg){al.textContent='Message is required.';al.classList.add('show');return;}
+  const tickets=getTickets();
+  const newT={
+    id:'TK-'+Date.now(),userEmail:email,userName:name,type,
+    bookingId:bkId||null,subject:subj,status:'open',priority,
+    createdAt:new Date().toISOString(),
+    messages:[{from:'agent',agentName:sess.name,text:msg,at:new Date().toISOString()}]
+  };
+  tickets.unshift(newT);
+  saveTickets(tickets);
+  addAgentLog('Ticket Created',`${newT.id}: "${subj}" for ${name}`);
+  closeModal();showSection('support');
+}
+
 
 // ══════════════════════════════════════════════════════════
 // ── SUPPORT AGENT: USER PROFILES
 // ══════════════════════════════════════════════════════════
 function buildUserProfiles(){
-  const users=getAllUsers(),bks=getAllBookings();
+  let users=getAllUsers();
+  const bks=getAllBookings();
+  const tickets=getTickets();
   return `
-  <h1 class="ptitle">User Profiles</h1><p class="psub">${users.length} registered users</p>
+  <h1 class="ptitle">User Profiles</h1><p class="psub">${users.length} registered user${users.length!==1?'s':''}</p>
   <div class="fbar"><input class="finput" placeholder="🔍 Search name, email…" oninput="fTbl('upT',this.value)" style="min-width:220px;"></div>
   <div class="card">
-  ${users.length?`<table id="upT"><thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Bookings</th><th>Spent</th><th>Tier</th><th>Actions</th></tr></thead><tbody>
+  ${users.length?`<table id="upT"><thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Bookings</th><th>Spent</th><th>Tier</th><th>Open Tickets</th><th>Actions</th></tr></thead><tbody>
     ${users.map(u=>{
       const ub=bks.filter(b=>b.email===u.email||b.guestName===u.name);
       const sp=ub.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+(b.grandTotal||0),0);
+      const openT=tickets.filter(t=>t.userEmail===u.email&&t.status==='open').length;
       let tier='None',tc='bgray';
       if(ub.length>=12&&sp>=750000){tier='Platinum';tc='bpurple';}
       else if(ub.length>=6&&sp>=300000){tier='Gold';tc='bgold';}
       else if(ub.length>=3&&sp>=100000){tier='Silver';tc='bgray';}
       else if(ub.length>=1){tier='Bronze';tc='bgold';}
-      return `<tr><td style="font-weight:600;">${u.name}</td><td style="font-size:0.82rem;">${u.email}</td><td>${fmtD(u.joinedAt)}</td><td style="text-align:center;font-weight:700;">${ub.length}</td><td style="font-weight:600;color:var(--gold);">${fmt(sp)}</td><td><span class="badge ${tc}">${tier}</span></td><td><button class="btn btnsm btn-out" onclick="openProfile('${u.email}')">${mi('person','font-size:12px;')} View</button></td></tr>`;
+      return `<tr>
+        <td style="font-weight:600;">${u.name||u.full_name||'—'}</td>
+        <td style="font-size:0.82rem;">${u.email}</td>
+        <td>${fmtD(u.joinedAt||u.createdAt)}</td>
+        <td style="text-align:center;font-weight:700;">${ub.length}</td>
+        <td style="font-weight:600;color:var(--gold);">${fmt(sp)}</td>
+        <td><span class="badge ${tc}">${tier}</span></td>
+        <td style="text-align:center;">${openT>0?`<span class="badge bred">${openT} open</span>`:'<span style="color:var(--gray-400);">—</span>'}</td>
+        <td><div style="display:flex;gap:5px;">
+          <button class="btn btnsm btn-out" onclick="openProfile('${u.email}')">${mi('person','font-size:12px;')} Profile</button>
+          <button class="btn btnsm btn-green" onclick="openNewTicket('${u.email}','${(u.name||u.full_name||'').replace(/'/g,"\'")}')">${mi('chat','font-size:12px;')} Message</button>
+        </div></td>
+      </tr>`;
     }).join('')}
-  </tbody></table>`:`<div class="no-data">${mi('people')}No users yet</div>`}
+  </tbody></table>`:`<div class="no-data">${mi('people')}No registered users yet.<br><span style="font-size:0.82rem;">Users who register via the login page will appear here.</span></div>`}
   </div>`;
 }
 
@@ -1032,16 +1219,23 @@ function saveModify(bid){
   const bks=getAllBookings(),i=bks.findIndex(b=>b.bookingId===bid);if(i===-1)return;
   const nights=Math.round((new Date(co)-new Date(ci))/86400000);
   const ppn=Math.round(bks[i].grandTotal/bks[i].nights);
+  // Update PHP database
+  const _api=(function(){const pts=window.location.pathname.split('/');const idx=pts.indexOf('RezHub-latest');const root=idx!==-1?'/'+pts.slice(0,idx+1).join('/').replace(/^\//,''):'';return root+'/api';})();
+  fetch(_api+'/admin.php',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'booking_status',booking_id:bid,check_in:ci,check_out:co})})
+    .catch(e=>console.warn('Admin modify API error:',e));
   bks[i].checkIn=ci;bks[i].checkOut=co;bks[i].nights=nights;bks[i].grandTotal=ppn*nights;
-  saveAllBookings(bks);
   addAgentLog('Booking Modified',`${bid}: dates changed to ${fmtD(ci)} – ${fmtD(co)}`);
   closeModal();showSection(_sect);
 }
-function cancelBk(bid){
+async function cancelBk(bid){
   if(!confirm(`Cancel booking ${bid}? This cannot be undone.`))return;
+  const _api=(function(){const pts=window.location.pathname.split('/');const idx=pts.indexOf('RezHub-latest');const root=idx!==-1?'/'+pts.slice(0,idx+1).join('/').replace(/^\//,''):'';return root+'/api';})();
+  await fetch(_api+'/bookings.php',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'cancel',booking_id:bid})}).catch(e=>console.warn(e));
   const bks=getAllBookings(),i=bks.findIndex(b=>b.bookingId===bid);
-  if(i!==-1){bks[i].status='cancelled';saveAllBookings(bks);}
-  addAgentLog('Booking Cancelled',`${bid} cancelled by support agent`);
+  if(i!==-1){bks[i].status='cancelled';}
+  addAgentLog('Booking Cancelled',`${bid} cancelled by admin`);
   showSection(_sect);
 }
 
@@ -1062,7 +1256,7 @@ function buildMyActivity(){
 // ══════════════════════════════════════════════════════════
 // BOOT
 // ══════════════════════════════════════════════════════════
-if(LS.get('sb_admin',null)==='1'||LS.get('sb_admin_session',null)) boot();
+if(LS.get('adm_admin',null)==='1'||LS.get('adm_admin_sess',null)) boot();
 </script>
 </body>
 </html>

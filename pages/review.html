@@ -72,13 +72,21 @@
   </div>
 </footer>
 
+<script src="../js/api.js"></script>
 <script src="../js/data.js"></script>
 <script>
   document.getElementById('menuToggle').addEventListener('click', () => {
     document.getElementById('mobileMenu').classList.toggle('open');
   });
-  requireLogin();
-  buildNav('review');
+  // Verify PHP session
+  RezAPI.Auth.me().then(r => {
+    if (!r.success || !r.data) {
+      window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+      return;
+    }
+    saveUser({ id: r.data.user_id, user_id: r.data.user_id, name: r.data.full_name || r.data.name || r.data.email, email: r.data.email, phone: r.data.phone || '' });
+    buildNav('review');
+  });
 
   const params = getParams();
   const hotelParam = params.get('hotel') || 'Your Hotel';
@@ -151,6 +159,7 @@
           <textarea id="reviewText" class="input-field no-icon" rows="5" style="resize:vertical;padding:14px;" placeholder="What made your stay memorable? What could be improved? Specific staff mentions are always appreciated…"></textarea>
         </div>
 
+        <div id="reviewApiError" style="display:none;color:#c0392b;background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:0.85rem;"></div>
         ${overall === 0 ? `<p style="font-size:0.8rem;color:var(--gray-400);text-align:center;margin-bottom:12px;">Please give an overall rating to continue</p>` : ''}
         <button id="submitReviewBtn" onclick="submitReview()" class="btn btn-primary btn-full btn-lg" ${overall === 0 ? 'style="opacity:0.5;cursor:not-allowed;"' : ''}>
           <span class="material-icons-round">send</span>
@@ -177,36 +186,40 @@
   }
   window.setCat = setCat;
 
-  function submitReview() {
+  async function submitReview() {
     if (overall === 0) return;
-    const text = document.getElementById('reviewText')?.value || '';
+    const text = document.getElementById('reviewText')?.value.trim() || '';
     const lowCats = categories.filter(c => catRatings[c] > 0 && catRatings[c] <= 3);
-    // Save review to localStorage
-    try {
-      const user = getUser();
-      const params = new URLSearchParams(window.location.search);
-      const hotelId = params.get('hotel');
-      const bookingId = params.get('booking');
-      const hotel = hotels.find(h=>String(h.id)===String(hotelId));
-      const reviews = JSON.parse(localStorage.getItem('sb_reviews')||'[]');
-      reviews.unshift({
-        id: 'RV-'+Date.now(),
-        bookingId: bookingId||'',
-        hotelId: hotelId||'',
-        hotelName: hotel?.name||'',
-        hotelCity: hotel?.city||'',
-        userId: user?.email||'guest',
-        userName: user?.name||'Guest',
-        userEmail: user?.email||'',
-        rating: overall,
-        catRatings: {...catRatings},
-        text: text,
-        createdAt: new Date().toISOString(),
-        managerReply: null,
-        repliedAt: null
-      });
-      localStorage.setItem('sb_reviews', JSON.stringify(reviews.slice(0,100)));
-    } catch(e) {}
+
+    const btn = document.getElementById('submitReviewBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-icons-round">sync</span> Submitting…';
+
+    let apiSuccess = false;
+    let apiError = '';
+    if (bid) {
+      try {
+        const res = await RezAPI.Reviews.submit({
+          booking_id:     bid,
+          overall_rating: overall,
+          review_text:    text,
+        });
+        if (res.success) { apiSuccess = true; }
+        else { apiError = res.message || 'Could not save review.'; }
+      } catch(e) {
+        apiError = 'Network error — please try again.';
+      }
+    } else {
+      apiSuccess = true;
+    }
+
+    if (!apiSuccess) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons-round">send</span> Submit Review';
+      const errEl = document.getElementById('reviewApiError');
+      if (errEl) { errEl.textContent = '⚠️ ' + apiError; errEl.style.display = 'block'; }
+      return;
+    }
 
     document.getElementById('reviewContent').innerHTML = `
       <div style="background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:60px 40px;text-align:center;border:1px solid var(--gray-200);">

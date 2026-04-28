@@ -5,6 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hotel Detail — RezHub</title>
   <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    /* Date-picker shake + highlight when user tries to book without dates */
+    @keyframes dateshake {
+      0%,100% { transform: translateX(0); }
+      20%,60%  { transform: translateX(-6px); }
+      40%,80%  { transform: translateX(6px); }
+    }
+    .date-required-highlight input {
+      border-color: #e53e3e !important;
+      animation: dateshake 0.4s ease;
+    }
+    .date-required-msg {
+      display: none;
+      background: #fff5f5; border: 1px solid #fc8181; border-radius: 8px;
+      color: #c53030; font-size: 0.82rem; font-weight: 600;
+      padding: 10px 14px; margin-top: 10px;
+      align-items: center; gap: 8px;
+    }
+    .date-required-msg.show { display: flex; }
+    /* Muted book-room button when no dates set */
+    .btn-book-room.no-dates {
+      opacity: 0.45; cursor: not-allowed; pointer-events: none;
+    }
+  </style>
 </head>
 <body>
 
@@ -61,6 +85,7 @@
   </div>
 </footer>
 
+<script src="../js/api.js"></script>
 <script src="../js/data.js"></script>
 <script>
   document.getElementById('menuToggle').addEventListener('click', () => {
@@ -188,12 +213,16 @@
     const roomsHtml = hotel.rooms.map(room => {
       const roomTotal = room.price * nights;
       const bookUrl = `booking.html?hotelId=${hotel.id}&roomId=${room.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+      const unavailable = checkIn && checkOut && window._bookedRoomIds && window._bookedRoomIds.includes(room.id);
       return `
-        <div class="room-card">
+        <div class="room-card" data-room-id="${room.id}" style="${unavailable ? 'opacity:0.6;' : ''}">
           <img src="${room.image}" alt="${room.name}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80'">
           <div class="room-card-body">
             <div class="room-card-header">
-              <div><div class="room-name">${room.name}</div></div>
+              <div>
+                <div class="room-name">${room.name}</div>
+                <span class="avail-badge" style="display:${unavailable?'inline-flex':'none'};align-items:center;gap:4px;margin-top:4px;padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:700;background:#fdf2f2;color:#c0392b;"><span class="material-icons-round" style="font-size:12px;">block</span>Unavailable for selected dates</span>
+              </div>
               <div style="text-align:right;">
                 <div class="room-price">${formatINR(room.price)}</div>
                 <div class="room-price-night">per night + GST</div>
@@ -213,7 +242,10 @@
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;">
               ${checkIn && checkOut ? `<span style="font-size:0.85rem;color:var(--gray-600);">Total: <strong style="color:var(--navy);">${formatINR(roomTotal)}</strong> for ${nights} night${nights !== 1 ? 's' : ''}</span>` : '<span></span>'}
-              <a href="${bookUrl}" class="btn btn-primary">Book This Room</a>
+              ${unavailable
+                ? `<button class="btn btn-primary btn-book-room room-book-btn" disabled style="opacity:0.45;cursor:not-allowed;pointer-events:none;">Not Available</button>`
+                : `<a href="${bookUrl}" class="btn btn-primary btn-book-room room-book-btn"
+                     onclick="return guardBook(event,'${bookUrl}')">Book This Room</a>`}
             </div>
           </div>
         </div>`;
@@ -309,8 +341,15 @@
               <span id="widgetErrorMsg"></span>
             </div>
 
+            <div id="dateRequiredMsg" class="date-required-msg">
+              <span class="material-icons-round" style="font-size:16px;flex-shrink:0;">calendar_today</span>
+              Please select check-in and check-out dates first.
+            </div>
+
             <a href="${hotel.rooms[0] ? `booking.html?hotelId=${hotel.id}&roomId=${hotel.rooms[0].id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}` : '#'}"
-               id="bookNowBtn" class="btn btn-primary btn-full btn-lg" style="margin-top:8px;">
+               id="bookNowBtn" class="btn btn-primary btn-full btn-lg btn-book-room"
+               style="margin-top:8px;"
+               onclick="return guardBook(event, this.getAttribute('href'))">
               <span class="material-icons-round">hotel</span>
               Book Now
             </a>
@@ -320,6 +359,37 @@
           </div>
         </aside>
       </div>`;
+
+    // ── Date guard: intercepts all "Book" clicks ──────────────────────────
+    window.guardBook = function(event, url) {
+      const ci = document.getElementById('widgetCheckIn')?.value;
+      const co = document.getElementById('widgetCheckOut')?.value;
+      if (!ci || !co) {
+        event.preventDefault();
+        // Scroll to & highlight the date pickers
+        const widget = document.querySelector('.booking-widget') || document.querySelector('.booking-sidebar');
+        if (widget) widget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const datesWrap = document.querySelector('.widget-dates');
+        if (datesWrap) {
+          datesWrap.classList.add('date-required-highlight');
+          setTimeout(() => datesWrap.classList.remove('date-required-highlight'), 1200);
+        }
+        const msg = document.getElementById('dateRequiredMsg');
+        if (msg) {
+          msg.classList.add('show');
+          setTimeout(() => msg.classList.remove('show'), 3500);
+        }
+        return false;
+      }
+      // Dates are set — make sure the URL has the latest dates before navigating
+      if (url && url.includes('booking.html')) {
+        const g = document.getElementById('widgetGuests')?.value || '2';
+        const target = `booking.html?hotelId=${url.split('hotelId=')[1]?.split('&')[0]}&roomId=${url.split('roomId=')[1]?.split('&')[0]}&checkIn=${ci}&checkOut=${co}&guests=${g}`;
+        window.location.href = target;
+        return false;
+      }
+      return true;
+    };
 
     function togglePriceBreakdown() {
       const box = document.getElementById('priceBreakdownBox');
@@ -364,11 +434,44 @@
         const btn = document.querySelector(`[href*="roomId=${room.id}"]`);
         if (btn && ci && co) btn.href = `booking.html?hotelId=${hotel.id}&roomId=${room.id}&checkIn=${ci}&checkOut=${co}&guests=${g}`;
       });
+
+      // Re-check availability whenever dates change
+      if (ci && co) {
+        const parts = window.location.pathname.split('/');
+        const idx   = parts.indexOf('RezHub-latest');
+        const base  = (idx !== -1 ? '/' + parts.slice(0, idx + 1).join('/').replace(/^\//, '') : '') + '/api';
+        fetch(`${base}/bookings.php?action=availability&hotel_id=${hotel.id}&check_in=${ci}&check_out=${co}`, { credentials: 'include' })
+          .then(r => r.json())
+          .then(j => {
+            const bookedIds = j.success ? (j.data.booked_room_ids || []) : [];
+            hotel.rooms.forEach(room => {
+              const card = document.querySelector(`.room-card[data-room-id="${room.id}"]`);
+              if (!card) return;
+              const badge = card.querySelector('.avail-badge');
+              const bookBtn = card.querySelector('.room-book-btn');
+              if (bookedIds.includes(room.id)) {
+                card.style.opacity = '0.6';
+                if (badge) badge.style.display = 'inline-flex';
+                if (bookBtn) { bookBtn.textContent = 'Not Available'; bookBtn.style.opacity = '0.45'; bookBtn.style.pointerEvents = 'none'; bookBtn.removeAttribute('href'); }
+              } else {
+                card.style.opacity = '';
+                if (badge) badge.style.display = 'none';
+                if (bookBtn) {
+                  bookBtn.textContent = 'Book This Room';
+                  bookBtn.style.opacity = ''; bookBtn.style.pointerEvents = '';
+                  bookBtn.href = `booking.html?hotelId=${hotel.id}&roomId=${room.id}&checkIn=${ci}&checkOut=${co}&guests=${g}`;
+                }
+              }
+            });
+          }).catch(() => {});
+      }
     }
 
     wci.addEventListener('change', () => { if (wco.value <= wci.value) wco.value = ''; updateWidget(); });
     wco.addEventListener('change', updateWidget);
     wg.addEventListener('change', updateWidget);
+    // If dates came from URL params, run availability check immediately
+    if (checkIn && checkOut) updateWidget();
   }
 </script>
 </body>

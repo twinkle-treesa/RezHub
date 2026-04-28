@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Search Results — RezHub</title>
   <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    /* ── Sticky filter panel: scroll internally when taller than viewport ── */
+    .filters-panel {
+      max-height: calc(100vh - 108px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gray-200) transparent;
+    }
+    .filters-panel::-webkit-scrollbar { width: 4px; }
+    .filters-panel::-webkit-scrollbar-thumb {
+      background: var(--gray-200); border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
 
@@ -98,18 +111,6 @@
         </div>
       </div>
 
-      <div class="filter-section">
-        <div class="filter-label">Star Rating</div>
-        <div class="rating-btns" id="starBtns">
-          <button class="rating-btn active" data-stars="0">All</button>
-          <button class="rating-btn" data-stars="1">⭐ 1</button>
-          <button class="rating-btn" data-stars="2">⭐ 2</button>
-          <button class="rating-btn" data-stars="3">⭐ 3</button>
-          <button class="rating-btn" data-stars="4">⭐ 4</button>
-          <button class="rating-btn" data-stars="5">⭐ 5</button>
-        </div>
-      </div>
-
       <button class="reset-btn" id="resetFilters">
         <span class="material-icons-round" style="font-size:16px;vertical-align:middle;">refresh</span>
         Reset All Filters
@@ -171,6 +172,7 @@
   </div>
 </footer>
 
+<script src="../js/api.js"></script>
 <script src="../js/data.js"></script>
 <script>
   document.getElementById('menuToggle').addEventListener('click', () => {

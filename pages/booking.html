@@ -269,13 +269,32 @@
   </div>
 </footer>
 
+<script src="../js/api.js"></script>
 <script src="../js/data.js"></script>
 <script>
   document.getElementById('menuToggle').addEventListener('click', () => {
     document.getElementById('mobileMenu').classList.toggle('open');
   });
-  requireLogin();
-  buildNav('booking');
+
+  // ── Auth: verify PHP session, then populate loyalty cache before rendering ──
+  (async () => {
+    // 1. Verify user is logged in via PHP session
+    const meRes = await RezAPI.Auth.me();
+    if (!meRes.success || !meRes.data) {
+      var inPages = window.location.pathname.indexOf('/pages/') !== -1;
+      window.location.href = (inPages ? '' : 'pages/') + 'login.html?redirect=' + encodeURIComponent(window.location.href);
+      return;
+    }
+    // Sync localStorage so getUser() / buildNav() work
+    const u = meRes.data;
+    saveUser({ id: u.user_id, user_id: u.user_id, name: u.full_name || u.email, email: u.email, phone: u.phone || '' });
+    buildNav('booking');
+
+    // 2. Pre-load bookings so getCurrentTier() / applyLoyaltyDiscount() are accurate
+    await getBookingsAsync();
+
+    initBookingPage();
+  })();
 
   const params = getParams();
   const hotelId = params.get('hotelId');
@@ -288,33 +307,35 @@
   const hotel = hotels.find(h => h.id === hotelId);
   const room  = hotel?.rooms.find(r => r.id === roomId);
 
-  document.getElementById('breadcrumbSearch').href =
-    `search.html?destination=${hotel?.city||''}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+  function initBookingPage() {
 
-  if (!hotel || !room) {
-    document.getElementById('pageContent').innerHTML = `
-      <div class="container empty-state">
-        <div class="material-icons-round">search_off</div>
-        <h2>Booking Not Found</h2>
-        <p>Please go back and select a room.</p>
-        <a href="search.html" class="btn btn-primary">Browse Hotels</a>
-      </div>`;
-  } else if (!checkIn || !checkOut || nights <= 0) {
-    // Dates missing — send user back to hotel page with a clear message
-    document.getElementById('pageContent').innerHTML = `
-      <div class="container empty-state" style="padding:60px 24px;text-align:center;">
-        <div class="material-icons-round" style="font-size:56px;color:var(--gold);margin-bottom:16px;">calendar_today</div>
-        <h2 style="margin-bottom:12px;">No Dates Selected</h2>
-        <p style="color:var(--gray-400);max-width:400px;margin:0 auto 28px;">
-          Please choose your check-in and check-out dates before completing a booking.
-        </p>
-        <a href="hotel.html?id=${hotel.id}&checkIn=&checkOut=&guests=${guests}"
-           class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;">
-          <span class="material-icons-round">arrow_back</span>
-          Back to ${hotel.name}
-        </a>
-      </div>`;
-  } else {
+    document.getElementById('breadcrumbSearch').href =
+      `search.html?destination=${hotel?.city||''}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+
+    if (!hotel || !room) {
+      document.getElementById('pageContent').innerHTML = `
+        <div class="container empty-state">
+          <div class="material-icons-round">search_off</div>
+          <h2>Booking Not Found</h2>
+          <p>Please go back and select a room.</p>
+          <a href="search.html" class="btn btn-primary">Browse Hotels</a>
+        </div>`;
+    } else if (!checkIn || !checkOut || nights <= 0) {
+      // Dates missing — send user back to hotel page with a clear message
+      document.getElementById('pageContent').innerHTML = `
+        <div class="container empty-state" style="padding:60px 24px;text-align:center;">
+          <div class="material-icons-round" style="font-size:56px;color:var(--gold);margin-bottom:16px;">calendar_today</div>
+          <h2 style="margin-bottom:12px;">No Dates Selected</h2>
+          <p style="color:var(--gray-400);max-width:400px;margin:0 auto 28px;">
+            Please choose your check-in and check-out dates before completing a booking.
+          </p>
+          <a href="hotel.html?id=${hotel.id}&checkIn=&checkOut=&guests=${guests}"
+             class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;">
+            <span class="material-icons-round">arrow_back</span>
+            Back to ${hotel.name}
+          </a>
+        </div>`;
+    } else {
     document.title = `Book ${room.name} — RezHub`;
     document.getElementById('breadcrumbHotel').textContent = hotel.name;
     document.getElementById('breadcrumbHotel').href =
@@ -563,7 +584,7 @@
       </main>`;
 
     // ── Demo Payment Handler ────────────────────────────────────────────────
-    let _guestName, _email, _specialRequests;
+    let _guestName, _email, _phone, _firstName, _lastName, _specialRequests;
 
     // Tab switcher inside modal
     window.switchTab = function(tab, btn) {
@@ -601,7 +622,10 @@
       }
       document.getElementById('formError').style.display = 'none';
 
-      _guestName       = document.getElementById('firstName').value.trim() + ' ' + document.getElementById('lastName').value.trim();
+      _firstName       = document.getElementById('firstName').value.trim();
+      _lastName        = document.getElementById('lastName').value.trim();
+      _guestName       = _firstName + ' ' + _lastName;
+      _phone           = document.getElementById('phone').value.trim();
       _email           = document.getElementById('email').value.trim();
       _specialRequests = document.getElementById('specialRequests').value.trim();
 
@@ -654,32 +678,64 @@
         step++;
       }, 900);
 
-      setTimeout(() => {
+      setTimeout(async () => {
         clearInterval(tick);
+
+        // Generate fake payment ID
+        const fakePayId = 'DEMO_' + Date.now().toString(36).toUpperCase();
+
+        // ── Save booking to DB via RezAPI (single source of truth) ──────────
+        let bookingId = null;
+        let saveError = null;
+        try {
+          const result = await RezAPI.Bookings.create({
+            hotel_id:         hotel.id,
+            room_id:          room.id,
+            check_in_date:    checkIn,
+            check_out_date:   checkOut,
+            guest_count:      parseInt(guests, 10) || 1,
+            first_name:       _firstName,
+            last_name:        _lastName,
+            guest_email:      _email,
+            guest_phone:      _phone || '0000000000',
+            special_requests: _specialRequests || '',
+            address:          document.getElementById('address')?.value.trim() || '',
+            guest_city:       document.getElementById('city')?.value.trim() || '',
+            zip_code:         document.getElementById('zipCode')?.value.trim() || '',
+            base_price:       total,
+            tax_amount:       taxes,
+            loyalty_saving:   loyalty.saving || 0,
+            grand_total:      grandTotal,
+            payment_id:       fakePayId,
+          });
+
+          if (result.success && result.data && result.data.booking_id) {
+            bookingId = result.data.booking_id;
+          } else {
+            saveError = result.message || 'Booking could not be saved. Please try again.';
+          }
+        } catch (e) {
+          console.error('Booking save error:', e);
+          saveError = 'Network error. Please check your connection and try again.';
+        }
+
+        // Hide payment modal / spinner
         proc.classList.remove('active');
         btn.disabled = false;
         document.getElementById('demoPayOverlay').classList.remove('active');
 
-        // Generate fake payment ID and save booking
-        const fakePayId  = 'DEMO_' + Date.now().toString(36).toUpperCase();
-        const bookingId  = 'SB' + Date.now().toString().slice(-8).toUpperCase();
-        const bookingTier = getCurrentTier();
+        // ── On failure: show error, do NOT redirect ─────────────────────────
+        if (!bookingId) {
+          const errBox = document.getElementById('formError');
+          const errMsg = document.getElementById('formErrorMsg');
+          errBox.style.display = 'flex';
+          errMsg.textContent = '⚠️ ' + (saveError || 'Booking failed. Please try again.');
+          errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          console.error('Booking not saved:', saveError);
+          return; // <-- do NOT redirect
+        }
 
-        saveBooking({
-          bookingId,
-          razorpayPaymentId: fakePayId,
-          hotelId: hotel.id, hotelName: hotel.name, hotelCity: hotel.city,
-          hotelImage: hotel.image, roomName: room.name, roomId: room.id,
-          roomPrice: room.price, checkIn, checkOut, guests, nights,
-          total, taxes, grandTotal,
-          guestName: _guestName, email: _email,
-          specialRequests: _specialRequests,
-          loyaltySaving: loyalty.saving,
-          tierAtBooking: bookingTier ? bookingTier.id : null,
-          bookedAt: new Date().toISOString(),
-          status: 'Confirmed'
-        });
-
+        // ── On success: go to confirmation ──────────────────────────────────
         const confirmParams = new URLSearchParams({
           bid: bookingId, hotel: hotel.name, city: hotel.city, room: room.name,
           checkIn, checkOut, guests, nights, total: grandTotal,
@@ -687,8 +743,10 @@
         });
         window.location.href = 'confirmation.html?' + confirmParams.toString();
       }, 2800);
-    };
-  }
+    }; // end submitDemoPayment
+
+    } // end else block
+  } // end initBookingPage
 </script>
 </body>
 </html>

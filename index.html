@@ -450,47 +450,43 @@
     document.getElementById('menuToggle').addEventListener('click', () => {
       document.getElementById('mobileMenu').classList.toggle('open');
     });
+
+    // Render nav immediately so it shows on first paint (uses localStorage / null = guest)
     buildNav('home');
 
-    // Redirect logged-in users straight to their dashboard
-    (function () {
-      if (isLoggedIn()) {
-        window.location.replace('pages/dashboard.html');
-      }
-    })();
+    // Background session check — corrects nav if PHP session differs from localStorage
+    (async function () {
+      try {
+        const parts = window.location.pathname.split('/');
+        const idx   = parts.indexOf('RezHub-latest');
+        const base  = (idx !== -1 ? '/' + parts.slice(0, idx + 1).join('/').replace(/^\//, '') : '') + '/api';
+        const r     = await fetch(base + '/auth.php?action=me', { credentials: 'include' });
+        const json  = await r.json();
+        if (json.success && json.data) {
+          try { localStorage.setItem('sb_user', JSON.stringify(json.data)); } catch(e) {}
+          // Logged-in user landed on homepage — redirect to their dashboard
+          window.location.href = 'pages/dashboard.html';
+          return;
+        } else {
+          try { localStorage.removeItem('sb_user'); } catch(e) {}
+        }
+        // Re-render nav with confirmed session state
+        buildNav('home');
 
-    // Logged-in welcome dashboard
-    (function () {
-      const u = getUser();
-      const el = document.getElementById('userDashboard');
-      if (!u || !el) return;
-      const tier = getCurrentTier();
-      const bk = getBookings();
-      const tierBadge = tier ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:10px;font-size:0.7rem;font-weight:700;background:${tier.colorLight};color:${tier.color};border:1px solid ${tier.color}40;"><span class="material-icons-round" style="font-size:12px;">${tier.icon}</span>${tier.name} Member</span>` : '';
-      el.style.display = 'block';
-      el.innerHTML = `<div style="background:var(--navy);padding:18px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
-      <div class="container" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
-        <div style="display:flex;align-items:center;gap:14px;">
-          <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#6a3c0e);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;color:var(--navy);font-family:'DM Sans',sans-serif;">${u.name.charAt(0).toUpperCase()}</div>
-          <div>
-            <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;">Welcome back</div>
-            <div style="font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:#fff;">${u.name}</div>
-          </div>
-          ${tierBadge}
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <a href="pages/mybookings.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;border:1.5px solid rgba(201,169,110,0.4);color:var(--gold);font-size:0.82rem;font-weight:600;text-decoration:none;background:rgba(201,169,110,0.07);">
-            <span class="material-icons-round" style="font-size:15px;">hotel</span>My Bookings ${bk.length ? `<span style="background:var(--gold);color:var(--navy);border-radius:8px;padding:0 7px;font-size:0.68rem;">${bk.length}</span>` : ''}
-          </a>
-          <a href="pages/loyalty.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;border:1.5px solid rgba(201,169,110,0.4);color:var(--gold);font-size:0.82rem;font-weight:600;text-decoration:none;background:rgba(201,169,110,0.07);">
-            <span class="material-icons-round" style="font-size:15px;">star</span>My Rewards
-          </a>
-          <button onclick="buildPrefModal()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;border:1.5px solid rgba(201,169,110,0.4);color:var(--gold);font-size:0.82rem;font-weight:600;background:rgba(201,169,110,0.07);cursor:pointer;font-family:inherit;">
-            <span class="material-icons-round" style="font-size:15px;">tune</span>Preferences
-          </button>
-        </div>
-      </div>
-    </div>`;
+        // Show welcome strip if logged in
+        const _u = getUser();
+        if (_u) {
+          if (!_u.name) _u.name = _u.full_name || _u.email || 'Guest';
+          const _el = document.getElementById('userDashboard');
+          if (_el) {
+            const _tier = getCurrentTier();
+            const _bk   = getBookings();
+            const _badge = _tier ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:10px;font-size:0.7rem;font-weight:700;background:'+_tier.colorLight+';color:'+_tier.color+';border:1px solid '+_tier.color+'40;"><span class="material-icons-round" style="font-size:12px;">'+_tier.icon+'</span>'+_tier.name+' Member</span>' : '';
+            _el.style.display = 'block';
+            _el.innerHTML = '<div style="background:var(--navy);padding:18px 0;border-bottom:1px solid rgba(255,255,255,0.07);"><div class="container" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;"><div style="display:flex;align-items:center;gap:14px;"><div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#6a3c0e);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;color:var(--navy);font-family:\'DM Sans\',sans-serif;">'+_u.name.charAt(0).toUpperCase()+'</div><div><div style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;">Welcome back</div><div style="font-family:\'Cormorant Garamond\',serif;font-size:1.25rem;color:#fff;">'+_u.name+'</div></div>'+_badge+'</div><div style="display:flex;gap:10px;flex-wrap:wrap;"><a href="pages/mybookings.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;border:1.5px solid rgba(201,169,110,0.4);color:var(--gold);font-size:0.82rem;font-weight:600;text-decoration:none;background:rgba(201,169,110,0.07);"><span class="material-icons-round" style="font-size:15px;">hotel</span>My Bookings'+(_bk.length ? ' <span style="background:var(--gold);color:var(--navy);border-radius:8px;padding:0 7px;font-size:0.68rem;">'+_bk.length+'</span>' : '')+'</a><a href="pages/loyalty.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;border:1.5px solid rgba(201,169,110,0.4);color:var(--gold);font-size:0.82rem;font-weight:600;text-decoration:none;background:rgba(201,169,110,0.07);"><span class="material-icons-round" style="font-size:15px;">star</span>My Rewards</a><button onclick="buildPrefModal()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;border:1.5px solid rgba(201,169,110,0.4);color:var(--gold);font-size:0.82rem;font-weight:600;background:rgba(201,169,110,0.07);cursor:pointer;font-family:inherit;"><span class="material-icons-round" style="font-size:15px;">tune</span>Preferences</button></div></div></div>';
+          }
+        }
+      } catch(e) { /* PHP unreachable — localStorage nav already shown above */ }
     })();
 
     const today = new Date().toISOString().split('T')[0];
@@ -532,9 +528,9 @@
 
     // Featured hotels — show 3 high-rated, varied picks
     const featured = [
-      hotels.find(h => h.id === 'rj2'),  // Oberoi Udaivilas
-      hotels.find(h => h.id === 'kl2'),  // Kumarakom Lake Resort
-      hotels.find(h => h.id === 'up5'),  // Hotel Sheela Agra (budget gem)
+      hotels.find(h => h.id === 'rj2'),
+      hotels.find(h => h.id === 'kl2'),
+      hotels.find(h => h.id === 'up5'),
     ].filter(Boolean);
 
     document.getElementById('featuredHotels').innerHTML = featured.map(h => `
