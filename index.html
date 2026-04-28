@@ -1,401 +1,474 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RezHub — Find Your Perfect Stay</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
 
-<!-- HEADER -->
-<header class="site-header">
-  <div class="container header-inner">
-    <a href="index.html" class="logo">
-      <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
-      <span class="accent">RezHub</span>
-    </a>
-    <nav class="nav-links"></nav>
-    <button class="menu-toggle" id="menuToggle" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
-  <div class="mobile-menu" id="mobileMenu"></div>
-</header>
-
-<!-- USER DASHBOARD -->
-<div id="userDashboard" style="display:none;"></div>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg" style="background-image:url('images/hero-bg.jpg')"></div>
-  <div class="hero-overlay"></div>
-  <div class="container hero-content fade-in">
-    <span class="hero-eyebrow">Palaces, hill resorts & backwaters — handpicked across India</span>
-    <h1 class="hero-title">India deserves<br><em>better booking</em></h1>
-    <p class="hero-subtitle">We list every tier — from Taj suites to ₹900 ghat-side guesthouses — with honest pricing, real warnings, and no hidden fees.</p>
-
-    <div class="search-box fade-in-delay-1">
-      <form id="searchForm">
-        <div id="searchError" class="alert alert-error" style="display:none;">
-          <span class="material-icons-round">error_outline</span>
-          <span id="searchErrorMsg"></span>
-        </div>
-        <div class="search-grid">
-          <div class="form-group">
-            <label class="form-label">Where to?</label>
-            <div class="input-wrap">
-              <span class="material-icons-round icon">location_on</span>
-              <input type="text" id="destination" class="input-field" placeholder="Mumbai, Jaipur, Goa…" required>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Check-in</label>
-            <div class="input-wrap">
-              <span class="material-icons-round icon">event</span>
-              <input type="date" id="checkIn" class="input-field" required>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Check-out</label>
-            <div class="input-wrap">
-              <span class="material-icons-round icon">event</span>
-              <input type="date" id="checkOut" class="input-field" required>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Guests</label>
-            <div class="input-wrap">
-              <span class="material-icons-round icon">people</span>
-              <select id="guests" class="input-field">
-                <option value="1">1 Guest</option>
-                <option value="2" selected>2 Guests</option>
-                <option value="3">3 Guests</option>
-                <option value="4">4 Guests</option>
-                <option value="5">5 Guests</option>
-                <option value="6">6 Guests</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:16px;">
-          <span class="material-icons-round">search</span>
-          Search Hotels
-        </button>
-      </form>
-    </div>
-
-    <!-- Trust bar -->
-    <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:28px;" class="fade-in-delay-2">
-      <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.65);font-size:0.82rem;">
-        <span class="material-icons-round" style="font-size:17px;color:var(--gold);">verified</span>
-        No hidden charges — GST shown upfront
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.65);font-size:0.82rem;">
-        <span class="material-icons-round" style="font-size:17px;color:var(--gold);">cancel</span>
-        Free cancellation on most rooms
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.65);font-size:0.82rem;">
-        <span class="material-icons-round" style="font-size:17px;color:var(--gold);">support_agent</span>
-        WhatsApp support in Hindi & English
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- STATS BAR -->
-<section style="background:var(--navy);padding:28px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
-  <div class="container">
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center;">
-      <div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--gold);line-height:1;">66</div>
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-top:4px;text-transform:uppercase;letter-spacing:0.07em;">Curated Hotels</div>
-      </div>
-      <div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--gold);line-height:1;">11</div>
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-top:4px;text-transform:uppercase;letter-spacing:0.07em;">States Covered</div>
-      </div>
-      <div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--gold);line-height:1;">₹850</div>
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-top:4px;text-transform:uppercase;letter-spacing:0.07em;">Starts From</div>
-      </div>
-      <div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--gold);line-height:1;">1★–5★</div>
-        <div style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-top:4px;text-transform:uppercase;letter-spacing:0.07em;">Every Budget</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- WHY STAYBOOKER — original, India-specific -->
-<section class="features-section">
-  <div class="container">
-    <div class="text-center mb-32">
-      <p class="section-eyebrow">Built differently</p>
-      <h2 class="section-title" style="margin-bottom:8px;">We built this because we hated<br>the way hotel booking felt</h2>
-      <p style="color:var(--gray-600);max-width:540px;margin:0 auto;font-size:0.95rem;line-height:1.7;">Hidden charges showing up at checkout. Reviews that don't mention the construction site next door. Prices that change when you add GST. We fixed all of that.</p>
-    </div>
-    <div class="features-grid">
-      <div class="feature-card fade-in-delay-1">
-        <div class="feature-icon"><span class="material-icons-round">receipt_long</span></div>
-        <h3>GST included, always</h3>
-        <p>Every price you see already includes 18% GST. The amount shown is exactly what you pay — not a rupee more. We were tired of the "taxes extra" surprise too.</p>
-      </div>
-      <div class="feature-card fade-in-delay-2">
-        <div class="feature-icon"><span class="material-icons-round">warning_amber</span></div>
-        <h3>Honest nearby warnings</h3>
-        <p>Temple bells at 5am? Metro construction outside? Cricket match traffic? We tell you before you book — not after you check in and can't sleep.</p>
-      </div>
-      <div class="feature-card fade-in-delay-3">
-        <div class="feature-icon"><span class="material-icons-round">tune</span></div>
-        <h3>Your preferences, remembered</h3>
-        <p>Set your pillow type, dietary needs, floor preference and room temperature once. Every booking auto-fills them. Your stay, exactly as you like it.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURED HOTELS -->
-<section style="background:var(--white);padding:72px 0;">
-  <div class="container">
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:36px;flex-wrap:wrap;gap:16px;">
-      <div>
-        <p class="section-eyebrow">Handpicked</p>
-        <h2 class="section-title" style="margin-bottom:0;">Worth every rupee</h2>
-      </div>
-      <a href="pages/search.html" style="font-size:0.875rem;font-weight:600;color:var(--gold);display:flex;align-items:center;gap:5px;">
-        See all 66 hotels <span class="material-icons-round" style="font-size:17px;">arrow_forward</span>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+        <span class="accent">RezHub</span>
       </a>
+      <nav class="nav-links"></nav>
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;" id="featuredHotels"></div>
-  </div>
-</section>
+    <div class="mobile-menu" id="mobileMenu"></div>
+  </header>
 
-<!-- DESTINATIONS -->
-<section class="destinations-section" id="destinations">
-  <div class="container">
-    <div class="text-center mb-32">
-      <p class="section-eyebrow">11 states, every budget</p>
-      <h2 class="section-title" style="margin-bottom:0;">Where are you headed?</h2>
+  <!-- USER DASHBOARD -->
+  <div id="userDashboard" style="display:none;"></div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg" style="background-image:url('images/hero-bg.jpg')"></div>
+    <div class="hero-overlay"></div>
+    <div class="container hero-content fade-in">
+      <span class="hero-eyebrow">Palaces, hill resorts & backwaters — handpicked across India</span>
+      <h1 class="hero-title">India deserves<br><em>better booking</em></h1>
+      <p class="hero-subtitle">We list every tier — from Taj suites to ₹900 ghat-side guesthouses — with honest pricing,
+        real warnings, and no hidden fees.</p>
+
+      <div class="search-box fade-in-delay-1">
+        <form id="searchForm">
+          <div id="searchError" class="alert alert-error" style="display:none;">
+            <span class="material-icons-round">error_outline</span>
+            <span id="searchErrorMsg"></span>
+          </div>
+          <div class="search-grid">
+            <div class="form-group">
+              <label class="form-label">Where to?</label>
+              <div class="input-wrap">
+                <span class="material-icons-round icon">location_on</span>
+                <input type="text" id="destination" class="input-field" placeholder="Mumbai, Jaipur, Goa…" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Check-in</label>
+              <div class="input-wrap">
+                <span class="material-icons-round icon">event</span>
+                <input type="date" id="checkIn" class="input-field" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Check-out</label>
+              <div class="input-wrap">
+                <span class="material-icons-round icon">event</span>
+                <input type="date" id="checkOut" class="input-field" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Guests</label>
+              <div class="input-wrap">
+                <span class="material-icons-round icon">people</span>
+                <select id="guests" class="input-field">
+                  <option value="1">1 Guest</option>
+                  <option value="2" selected>2 Guests</option>
+                  <option value="3">3 Guests</option>
+                  <option value="4">4 Guests</option>
+                  <option value="5">5 Guests</option>
+                  <option value="6">6 Guests</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:16px;">
+            <span class="material-icons-round">search</span>
+            Search Hotels
+          </button>
+        </form>
+      </div>
+
+      <!-- Trust bar -->
+      <div style="display:flex;flex-wrap:wrap;gap:24px;margin-top:28px;" class="fade-in-delay-2">
+        <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.65);font-size:0.82rem;">
+          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">verified</span>
+          No hidden charges — GST shown upfront
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.65);font-size:0.82rem;">
+          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">cancel</span>
+          Free cancellation on most rooms
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.65);font-size:0.82rem;">
+          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">support_agent</span>
+          WhatsApp support in Hindi & English
+        </div>
+      </div>
     </div>
-    <div class="dest-grid">
-      <div class="dest-card" onclick="goToDestination('Mumbai')">
-        <img src="images/dest-mumbai.jpg" alt="Mumbai" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80'">
-        <div class="dest-overlay">
-          <div>
-            <div class="dest-name">Mumbai</div>
-            <div class="dest-count">₹850 – ₹35,000 · 6 hotels</div>
+  </section>
+
+  <!-- STATS BAR -->
+  <section style="background:var(--navy);padding:28px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center;">
+        <div>
+          <div
+            style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--gold);line-height:1;">
+            66</div>
+          <div
+            style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-top:4px;text-transform:uppercase;letter-spacing:0.07em;">
+            Curated Hotels</div>
+        </div>
+        <div>
+          <div
+            style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--gold);line-height:1;">
+            11</div>
+          <div
+            style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-top:4px;text-transform:uppercase;letter-spacing:0.07em;">
+            States Covered</div>
+        </div>
+        <div>
+          <div
+            style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--gold);line-height:1;">
+            ₹850</div>
+          <div
+            style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-top:4px;text-transform:uppercase;letter-spacing:0.07em;">
+            Starts From</div>
+        </div>
+        <div>
+          <div
+            style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--gold);line-height:1;">
+            1★–5★</div>
+          <div
+            style="font-size:0.78rem;color:rgba(255,255,255,0.45);margin-top:4px;text-transform:uppercase;letter-spacing:0.07em;">
+            Every Budget</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY STAYBOOKER — original, India-specific -->
+  <section class="features-section">
+    <div class="container">
+      <div class="text-center mb-32">
+        <p class="section-eyebrow">Built differently</p>
+        <h2 class="section-title" style="margin-bottom:8px;">We built this because we hated<br>the way hotel booking
+          felt</h2>
+        <p style="color:var(--gray-600);max-width:540px;margin:0 auto;font-size:0.95rem;line-height:1.7;">Hidden charges
+          showing up at checkout. Reviews that don't mention the construction site next door. Prices that change when
+          you add GST. We fixed all of that.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card fade-in-delay-1">
+          <div class="feature-icon"><span class="material-icons-round">receipt_long</span></div>
+          <h3>GST included, always</h3>
+          <p>Every price you see already includes 18% GST. The amount shown is exactly what you pay — not a rupee more.
+            We were tired of the "taxes extra" surprise too.</p>
+        </div>
+        <div class="feature-card fade-in-delay-2">
+          <div class="feature-icon"><span class="material-icons-round">warning_amber</span></div>
+          <h3>Honest nearby warnings</h3>
+          <p>Temple bells at 5am? Metro construction outside? Cricket match traffic? We tell you before you book — not
+            after you check in and can't sleep.</p>
+        </div>
+        <div class="feature-card fade-in-delay-3">
+          <div class="feature-icon"><span class="material-icons-round">tune</span></div>
+          <h3>Your preferences, remembered</h3>
+          <p>Set your pillow type, dietary needs, floor preference and room temperature once. Every booking auto-fills
+            them. Your stay, exactly as you like it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED HOTELS -->
+  <section style="background:var(--white);padding:72px 0;">
+    <div class="container">
+      <div
+        style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:36px;flex-wrap:wrap;gap:16px;">
+        <div>
+          <p class="section-eyebrow">Handpicked</p>
+          <h2 class="section-title" style="margin-bottom:0;">Worth every rupee</h2>
+        </div>
+        <a href="pages/search.html"
+          style="font-size:0.875rem;font-weight:600;color:var(--gold);display:flex;align-items:center;gap:5px;">
+          See all 66 hotels <span class="material-icons-round" style="font-size:17px;">arrow_forward</span>
+        </a>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;" id="featuredHotels"></div>
+    </div>
+  </section>
+
+  <!-- DESTINATIONS -->
+  <section class="destinations-section" id="destinations">
+    <div class="container">
+      <div class="text-center mb-32">
+        <p class="section-eyebrow">11 states, every budget</p>
+        <h2 class="section-title" style="margin-bottom:0;">Where are you headed?</h2>
+      </div>
+      <div class="dest-grid">
+        <div class="dest-card" onclick="goToDestination('Mumbai')">
+          <img src="images/dest-mumbai.jpg" alt="Mumbai"
+            onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80'">
+          <div class="dest-overlay">
+            <div>
+              <div class="dest-name">Mumbai</div>
+              <div class="dest-count">₹850 – ₹35,000 · 6 hotels</div>
+            </div>
+          </div>
+        </div>
+        <div class="dest-card" onclick="goToDestination('Udaipur')">
+          <img src="images/dest-udaipur.jpg" alt="Udaipur"
+            onerror="this.src='https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&q=80'">
+          <div class="dest-overlay">
+            <div>
+              <div class="dest-name">Udaipur</div>
+              <div class="dest-count">City of Lakes · Lake Pichola stays</div>
+            </div>
+          </div>
+        </div>
+        <div class="dest-card" onclick="goToDestination('Goa')">
+          <img src="images/dest-goa.jpg" alt="Goa"
+            onerror="this.src='https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=600&q=80'">
+          <div class="dest-overlay">
+            <div>
+              <div class="dest-name">Goa</div>
+              <div class="dest-count">Beach clubs to quiet guesthouses</div>
+            </div>
+          </div>
+        </div>
+        <div class="dest-card" onclick="goToDestination('Kerala')">
+          <img src="images/dest-kerala.jpg" alt="Kerala"
+            onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80'">
+          <div class="dest-overlay">
+            <div>
+              <div class="dest-name">Kerala</div>
+              <div class="dest-count">Backwaters, spice estates & Ayurveda</div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="dest-card" onclick="goToDestination('Udaipur')">
-        <img src="images/dest-udaipur.jpg" alt="Udaipur" onerror="this.src='https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&q=80'">
-        <div class="dest-overlay">
-          <div>
-            <div class="dest-name">Udaipur</div>
-            <div class="dest-count">City of Lakes · Lake Pichola stays</div>
+      <div style="text-align:center;margin-top:32px;">
+        <a href="pages/search.html" class="btn btn-outline"
+          style="border:2px solid var(--gold);color:var(--gold);padding:13px 36px;border-radius:8px;font-weight:600;font-size:0.9rem;display:inline-flex;align-items:center;gap:8px;">
+          <span class="material-icons-round" style="font-size:17px;">map</span>
+          Explore all 11 states
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section style="background:var(--navy);padding:80px 0;">
+    <div class="container">
+      <div class="text-center mb-32">
+        <p class="section-eyebrow" style="color:var(--gold-light);">Simple by design</p>
+        <h2 class="section-title" style="color:var(--white);margin-bottom:0;">From search to check-in in minutes</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:32px;position:relative;">
+        <div style="text-align:center;">
+          <div
+            style="width:56px;height:56px;border-radius:50%;background:rgba(201,169,110,0.15);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <span class="material-icons-round" style="color:var(--gold);font-size:24px;">search</span>
+          </div>
+          <div
+            style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">
+            Step 1</div>
+          <h3 style="color:var(--white);font-size:1.1rem;margin-bottom:8px;">Search by city or state</h3>
+          <p style="color:rgba(255,255,255,0.45);font-size:0.85rem;line-height:1.6;">Type any Indian city, state, or
+            even neighbourhood. Filter by star rating, price and amenities.</p>
+        </div>
+        <div style="text-align:center;">
+          <div
+            style="width:56px;height:56px;border-radius:50%;background:rgba(201,169,110,0.15);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <span class="material-icons-round" style="color:var(--gold);font-size:24px;">compare</span>
+          </div>
+          <div
+            style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">
+            Step 2</div>
+          <h3 style="color:var(--white);font-size:1.1rem;margin-bottom:8px;">Read the honest guide</h3>
+          <p style="color:rgba(255,255,255,0.45);font-size:0.85rem;line-height:1.6;">See real distances, noise warnings,
+            traffic notes and the "why is it this price?" breakdown.</p>
+        </div>
+        <div style="text-align:center;">
+          <div
+            style="width:56px;height:56px;border-radius:50%;background:rgba(201,169,110,0.15);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <span class="material-icons-round" style="color:var(--gold);font-size:24px;">edit_note</span>
+          </div>
+          <div
+            style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">
+            Step 3</div>
+          <h3 style="color:var(--white);font-size:1.1rem;margin-bottom:8px;">Book with your preferences</h3>
+          <p style="color:rgba(255,255,255,0.45);font-size:0.85rem;line-height:1.6;">Your saved preferences auto-fill —
+            pillow, diet, floor, temperature. Confirm in one tap.</p>
+        </div>
+        <div style="text-align:center;">
+          <div
+            style="width:56px;height:56px;border-radius:50%;background:rgba(201,169,110,0.15);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+            <span class="material-icons-round" style="color:var(--gold);font-size:24px;">hotel</span>
+          </div>
+          <div
+            style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">
+            Step 4</div>
+          <h3 style="color:var(--white);font-size:1.1rem;margin-bottom:8px;">Arrive. Relax. Earn rewards.</h3>
+          <p style="color:rgba(255,255,255,0.45);font-size:0.85rem;line-height:1.6;">Every stay earns loyalty points.
+            From Bronze to Platinum — discounts grow with every booking.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REAL GUEST REVIEWS -->
+  <section style="background:var(--cream);padding:80px 0;">
+    <div class="container">
+      <div class="text-center mb-32">
+        <p class="section-eyebrow">What guests say</p>
+        <h2 class="section-title" style="margin-bottom:0;">Real stays. Real opinions.</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+
+        <div
+          style="background:var(--white);border-radius:var(--radius);padding:28px;border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);">
+          <div style="display:flex;gap:3px;margin-bottom:14px;">
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+          </div>
+          <p style="color:var(--gray-600);font-size:0.9rem;line-height:1.7;margin-bottom:20px;">"The noise warning about
+            the temple bells saved my morning. I chose a room on a different floor and slept perfectly. I've never seen
+            a booking site actually tell you things like this."</p>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div
+              style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#c9a96e,#0f1e2e);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:white;font-family:'DM Sans',sans-serif;">
+              PK</div>
+            <div>
+              <div style="font-weight:600;font-size:0.875rem;color:var(--navy);">Priya Krishnamurthy</div>
+              <div style="font-size:0.75rem;color:var(--gray-400);">Stayed at Oberoi Udaivilas · Udaipur</div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="dest-card" onclick="goToDestination('Goa')">
-        <img src="images/dest-goa.jpg" alt="Goa" onerror="this.src='https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=600&q=80'">
-        <div class="dest-overlay">
-          <div>
-            <div class="dest-name">Goa</div>
-            <div class="dest-count">Beach clubs to quiet guesthouses</div>
+
+        <div
+          style="background:var(--white);border-radius:var(--radius);padding:28px;border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);">
+          <div style="display:flex;gap:3px;margin-bottom:14px;">
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+          </div>
+          <p style="color:var(--gray-600);font-size:0.9rem;line-height:1.7;margin-bottom:20px;">"Booked a 1-star near
+            Varanasi ghats for my solo trip. ₹1,100 with WiFi and the Ganga right outside. The honest review system made
+            me trust the listing. No surprises at check-in."</p>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div
+              style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1e3450,#c9a96e);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:white;font-family:'DM Sans',sans-serif;">
+              AM</div>
+            <div>
+              <div style="font-weight:600;font-size:0.875rem;color:var(--navy);">Arjun Mehrotra</div>
+              <div style="font-size:0.75rem;color:var(--gray-400);">Stayed at Hotel Alka · Varanasi</div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="dest-card" onclick="goToDestination('Kerala')">
-        <img src="images/dest-kerala.jpg" alt="Kerala" onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80'">
-        <div class="dest-overlay">
-          <div>
-            <div class="dest-name">Kerala</div>
-            <div class="dest-count">Backwaters, spice estates & Ayurveda</div>
+
+        <div
+          style="background:var(--white);border-radius:var(--radius);padding:28px;border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);">
+          <div style="display:flex;gap:3px;margin-bottom:14px;">
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
+            <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star_half</span>
+          </div>
+          <p style="color:var(--gray-600);font-size:0.9rem;line-height:1.7;margin-bottom:20px;">"My Jain dietary
+            preference was already filled in when I reached the booking page. The hotel had it ready on arrival. My
+            first stay where I didn't have to repeat myself three times."</p>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div
+              style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#8a6a1e,#faf8f3);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:#0f1e2e;font-family:'DM Sans',sans-serif;">
+              RS</div>
+            <div>
+              <div style="font-weight:600;font-size:0.875rem;color:var(--navy);">Riddhi Shah</div>
+              <div style="font-size:0.75rem;color:var(--gray-400);">Stayed at The House of MG · Ahmedabad</div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:32px;">
-      <a href="pages/search.html" class="btn btn-outline" style="border:2px solid var(--gold);color:var(--gold);padding:13px 36px;border-radius:8px;font-weight:600;font-size:0.9rem;display:inline-flex;align-items:center;gap:8px;">
-        <span class="material-icons-round" style="font-size:17px;">map</span>
-        Explore all 11 states
-      </a>
-    </div>
-  </div>
-</section>
 
-<!-- HOW IT WORKS -->
-<section style="background:var(--navy);padding:80px 0;">
-  <div class="container">
-    <div class="text-center mb-32">
-      <p class="section-eyebrow" style="color:var(--gold-light);">Simple by design</p>
-      <h2 class="section-title" style="color:var(--white);margin-bottom:0;">From search to check-in in minutes</h2>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:32px;position:relative;">
-      <div style="text-align:center;">
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(201,169,110,0.15);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
-          <span class="material-icons-round" style="color:var(--gold);font-size:24px;">search</span>
-        </div>
-        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Step 1</div>
-        <h3 style="color:var(--white);font-size:1.1rem;margin-bottom:8px;">Search by city or state</h3>
-        <p style="color:rgba(255,255,255,0.45);font-size:0.85rem;line-height:1.6;">Type any Indian city, state, or even neighbourhood. Filter by star rating, price and amenities.</p>
-      </div>
-      <div style="text-align:center;">
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(201,169,110,0.15);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
-          <span class="material-icons-round" style="color:var(--gold);font-size:24px;">compare</span>
-        </div>
-        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Step 2</div>
-        <h3 style="color:var(--white);font-size:1.1rem;margin-bottom:8px;">Read the honest guide</h3>
-        <p style="color:rgba(255,255,255,0.45);font-size:0.85rem;line-height:1.6;">See real distances, noise warnings, traffic notes and the "why is it this price?" breakdown.</p>
-      </div>
-      <div style="text-align:center;">
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(201,169,110,0.15);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
-          <span class="material-icons-round" style="color:var(--gold);font-size:24px;">edit_note</span>
-        </div>
-        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Step 3</div>
-        <h3 style="color:var(--white);font-size:1.1rem;margin-bottom:8px;">Book with your preferences</h3>
-        <p style="color:rgba(255,255,255,0.45);font-size:0.85rem;line-height:1.6;">Your saved preferences auto-fill — pillow, diet, floor, temperature. Confirm in one tap.</p>
-      </div>
-      <div style="text-align:center;">
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(201,169,110,0.15);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
-          <span class="material-icons-round" style="color:var(--gold);font-size:24px;">hotel</span>
-        </div>
-        <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Step 4</div>
-        <h3 style="color:var(--white);font-size:1.1rem;margin-bottom:8px;">Arrive. Relax. Earn rewards.</h3>
-        <p style="color:rgba(255,255,255,0.45);font-size:0.85rem;line-height:1.6;">Every stay earns loyalty points. From Bronze to Platinum — discounts grow with every booking.</p>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- REAL GUEST REVIEWS -->
-<section style="background:var(--cream);padding:80px 0;">
-  <div class="container">
-    <div class="text-center mb-32">
-      <p class="section-eyebrow">What guests say</p>
-      <h2 class="section-title" style="margin-bottom:0;">Real stays. Real opinions.</h2>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
-
-      <div style="background:var(--white);border-radius:var(--radius);padding:28px;border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);">
-        <div style="display:flex;gap:3px;margin-bottom:14px;">
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-        </div>
-        <p style="color:var(--gray-600);font-size:0.9rem;line-height:1.7;margin-bottom:20px;">"The noise warning about the temple bells saved my morning. I chose a room on a different floor and slept perfectly. I've never seen a booking site actually tell you things like this."</p>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#c9a96e,#0f1e2e);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:white;font-family:'DM Sans',sans-serif;">PK</div>
-          <div>
-            <div style="font-weight:600;font-size:0.875rem;color:var(--navy);">Priya Krishnamurthy</div>
-            <div style="font-size:0.75rem;color:var(--gray-400);">Stayed at Oberoi Udaivilas · Udaipur</div>
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo" style="margin-bottom:0;">
+            <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
+            <span class="accent">RezHub</span>
           </div>
+          <p>An India-first hotel booking platform. We cover every budget — from palace suites to backpacker lodges —
+            with GST-included pricing and honest local context.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="pages/search.html?destination=Rajasthan">Rajasthan Hotels</a></li>
+            <li><a href="pages/search.html?destination=Goa">Goa Hotels</a></li>
+            <li><a href="pages/search.html?destination=Kerala">Kerala Hotels</a></li>
+            <li><a href="pages/search.html?destination=Himachal Pradesh">Himachal Hotels</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Account</h4>
+          <ul>
+            <li><a href="pages/login.html">Sign In / Register</a></li>
+            <li><a href="pages/mybookings.html">My Bookings</a></li>
+            <li><a href="pages/loyalty.html">My Rewards</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Connect</h4>
+          <ul>
+            <li><a href="#">WhatsApp Support</a></li>
+            <li><a href="#">Instagram</a></li>
+            <li><a href="#">About StayBooker</a></li>
+            <li><a href="#">Careers</a></li>
+          </ul>
         </div>
       </div>
-
-      <div style="background:var(--white);border-radius:var(--radius);padding:28px;border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);">
-        <div style="display:flex;gap:3px;margin-bottom:14px;">
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-        </div>
-        <p style="color:var(--gray-600);font-size:0.9rem;line-height:1.7;margin-bottom:20px;">"Booked a 1-star near Varanasi ghats for my solo trip. ₹1,100 with WiFi and the Ganga right outside. The honest review system made me trust the listing. No surprises at check-in."</p>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1e3450,#c9a96e);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:white;font-family:'DM Sans',sans-serif;">AM</div>
-          <div>
-            <div style="font-weight:600;font-size:0.875rem;color:var(--navy);">Arjun Mehrotra</div>
-            <div style="font-size:0.75rem;color:var(--gray-400);">Stayed at Hotel Alka · Varanasi</div>
-          </div>
-        </div>
-      </div>
-
-      <div style="background:var(--white);border-radius:var(--radius);padding:28px;border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);">
-        <div style="display:flex;gap:3px;margin-bottom:14px;">
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star</span>
-          <span class="material-icons-round" style="font-size:17px;color:var(--gold);">star_half</span>
-        </div>
-        <p style="color:var(--gray-600);font-size:0.9rem;line-height:1.7;margin-bottom:20px;">"My Jain dietary preference was already filled in when I reached the booking page. The hotel had it ready on arrival. My first stay where I didn't have to repeat myself three times."</p>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#8a6a1e,#faf8f3);display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;color:#0f1e2e;font-family:'DM Sans',sans-serif;">RS</div>
-          <div>
-            <div style="font-weight:600;font-size:0.875rem;color:var(--navy);">Riddhi Shah</div>
-            <div style="font-size:0.75rem;color:var(--gray-400);">Stayed at The House of MG · Ahmedabad</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <div class="logo" style="margin-bottom:0;">
-          <div class="logo-icon"><span class="material-icons-round">hotel</span></div>
-          <span class="accent">RezHub</span>
-        </div>
-        <p>An India-first hotel booking platform. We cover every budget — from palace suites to backpacker lodges — with GST-included pricing and honest local context.</p>
-      </div>
-      <div class="footer-col">
-        <h4>Explore</h4>
-        <ul>
-          <li><a href="pages/search.html?destination=Rajasthan">Rajasthan Hotels</a></li>
-          <li><a href="pages/search.html?destination=Goa">Goa Hotels</a></li>
-          <li><a href="pages/search.html?destination=Kerala">Kerala Hotels</a></li>
-          <li><a href="pages/search.html?destination=Himachal Pradesh">Himachal Hotels</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Account</h4>
-        <ul>
-          <li><a href="pages/login.html">Sign In / Register</a></li>
-          <li><a href="pages/mybookings.html">My Bookings</a></li>
-          <li><a href="pages/loyalty.html">My Rewards</a></li>
-          <li><a href="#">Privacy Policy</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Connect</h4>
-        <ul>
-          <li><a href="#">WhatsApp Support</a></li>
-          <li><a href="#">Instagram</a></li>
-          <li><a href="#">About StayBooker</a></li>
-          <li><a href="#">Careers</a></li>
-        </ul>
+      <div class="footer-bottom">© 2026 RezHub. Made with care for Indian travellers. &nbsp;·&nbsp; <a
+          href="pages/admin.html" target="_blank" style="color:rgba(255,255,255,0.25);font-size:0.78rem;">Admin</a>
       </div>
     </div>
-    <div class="footer-bottom">© 2026 RezHub. Made with care for Indian travellers. &nbsp;·&nbsp; <a href="pages/admin.html" target="_blank" style="color:rgba(255,255,255,0.25);font-size:0.78rem;">Admin</a></div>
-  </div>
-</footer>
+  </footer>
 
-<script src="js/data.js"></script>
-<script>
-  document.getElementById('menuToggle').addEventListener('click', () => {
-    document.getElementById('mobileMenu').classList.toggle('open');
-  });
-  buildNav('home');
+  <script src="js/data.js"></script>
+  <script>
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('mobileMenu').classList.toggle('open');
+    });
+    buildNav('home');
 
-  // Logged-in welcome dashboard
-  (function(){
-    const u = getUser();
-    const el = document.getElementById('userDashboard');
-    if(!u || !el) return;
-    const tier = getCurrentTier();
-    const bk = getBookings();
-    const tierBadge = tier ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:10px;font-size:0.7rem;font-weight:700;background:${tier.colorLight};color:${tier.color};border:1px solid ${tier.color}40;"><span class="material-icons-round" style="font-size:12px;">${tier.icon}</span>${tier.name} Member</span>` : '';
-    el.style.display='block';
-    el.innerHTML=`<div style="background:var(--navy);padding:18px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+    // Redirect logged-in users straight to their dashboard
+    (function () {
+      if (isLoggedIn()) {
+        window.location.replace('pages/dashboard.html');
+      }
+    })();
+
+    // Logged-in welcome dashboard
+    (function () {
+      const u = getUser();
+      const el = document.getElementById('userDashboard');
+      if (!u || !el) return;
+      const tier = getCurrentTier();
+      const bk = getBookings();
+      const tierBadge = tier ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:10px;font-size:0.7rem;font-weight:700;background:${tier.colorLight};color:${tier.color};border:1px solid ${tier.color}40;"><span class="material-icons-round" style="font-size:12px;">${tier.icon}</span>${tier.name} Member</span>` : '';
+      el.style.display = 'block';
+      el.innerHTML = `<div style="background:var(--navy);padding:18px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
       <div class="container" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
         <div style="display:flex;align-items:center;gap:14px;">
           <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#6a3c0e);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;color:var(--navy);font-family:'DM Sans',sans-serif;">${u.name.charAt(0).toUpperCase()}</div>
@@ -407,7 +480,7 @@
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           <a href="pages/mybookings.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;border:1.5px solid rgba(201,169,110,0.4);color:var(--gold);font-size:0.82rem;font-weight:600;text-decoration:none;background:rgba(201,169,110,0.07);">
-            <span class="material-icons-round" style="font-size:15px;">hotel</span>My Bookings ${bk.length?`<span style="background:var(--gold);color:var(--navy);border-radius:8px;padding:0 7px;font-size:0.68rem;">${bk.length}</span>`:''}
+            <span class="material-icons-round" style="font-size:15px;">hotel</span>My Bookings ${bk.length ? `<span style="background:var(--gold);color:var(--navy);border-radius:8px;padding:0 7px;font-size:0.68rem;">${bk.length}</span>` : ''}
           </a>
           <a href="pages/loyalty.html" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;border:1.5px solid rgba(201,169,110,0.4);color:var(--gold);font-size:0.82rem;font-weight:600;text-decoration:none;background:rgba(201,169,110,0.07);">
             <span class="material-icons-round" style="font-size:15px;">star</span>My Rewards
@@ -418,53 +491,53 @@
         </div>
       </div>
     </div>`;
-  })();
+    })();
 
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('checkIn').min = today;
-  document.getElementById('checkOut').min = today;
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('checkIn').min = today;
+    document.getElementById('checkOut').min = today;
 
-  document.getElementById('checkIn').addEventListener('change', function() {
-    const out = document.getElementById('checkOut');
-    out.min = this.value;
-    if (out.value && out.value <= this.value) out.value = '';
-  });
+    document.getElementById('checkIn').addEventListener('change', function () {
+      const out = document.getElementById('checkOut');
+      out.min = this.value;
+      if (out.value && out.value <= this.value) out.value = '';
+    });
 
-  document.getElementById('searchForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const dest = document.getElementById('destination').value.trim();
-    const checkIn = document.getElementById('checkIn').value;
-    const checkOut = document.getElementById('checkOut').value;
-    const guests = document.getElementById('guests').value;
-    if (!dest) { showError('Please enter a destination.'); return; }
-    if (!checkIn) { showError('Please select a check-in date.'); return; }
-    if (!checkOut) { showError('Please select a check-out date.'); return; }
-    if (checkOut <= checkIn) { showError('Check-out must be after check-in.'); return; }
-    document.getElementById('searchError').style.display = 'none';
-    window.location.href = buildUrl('pages/search.html', { destination: dest, checkIn, checkOut, guests });
-  });
+    document.getElementById('searchForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const dest = document.getElementById('destination').value.trim();
+      const checkIn = document.getElementById('checkIn').value;
+      const checkOut = document.getElementById('checkOut').value;
+      const guests = document.getElementById('guests').value;
+      if (!dest) { showError('Please enter a destination.'); return; }
+      if (!checkIn) { showError('Please select a check-in date.'); return; }
+      if (!checkOut) { showError('Please select a check-out date.'); return; }
+      if (checkOut <= checkIn) { showError('Check-out must be after check-in.'); return; }
+      document.getElementById('searchError').style.display = 'none';
+      window.location.href = buildUrl('pages/search.html', { destination: dest, checkIn, checkOut, guests });
+    });
 
-  function showError(msg) {
-    document.getElementById('searchErrorMsg').textContent = msg;
-    document.getElementById('searchError').style.display = 'flex';
-  }
+    function showError(msg) {
+      document.getElementById('searchErrorMsg').textContent = msg;
+      document.getElementById('searchError').style.display = 'flex';
+    }
 
-  function goToDestination(city) {
-    const today = new Date();
-    const ci = new Date(today); ci.setDate(ci.getDate() + 7);
-    const co = new Date(today); co.setDate(co.getDate() + 10);
-    const fmt = d => d.toISOString().split('T')[0];
-    window.location.href = buildUrl('pages/search.html', { destination: city, checkIn: fmt(ci), checkOut: fmt(co), guests: 2 });
-  }
+    function goToDestination(city) {
+      const today = new Date();
+      const ci = new Date(today); ci.setDate(ci.getDate() + 7);
+      const co = new Date(today); co.setDate(co.getDate() + 10);
+      const fmt = d => d.toISOString().split('T')[0];
+      window.location.href = buildUrl('pages/search.html', { destination: city, checkIn: fmt(ci), checkOut: fmt(co), guests: 2 });
+    }
 
-  // Featured hotels — show 3 high-rated, varied picks
-  const featured = [
-    hotels.find(h => h.id === 'rj2'),  // Oberoi Udaivilas
-    hotels.find(h => h.id === 'kl2'),  // Kumarakom Lake Resort
-    hotels.find(h => h.id === 'up5'),  // Hotel Sheela Agra (budget gem)
-  ].filter(Boolean);
+    // Featured hotels — show 3 high-rated, varied picks
+    const featured = [
+      hotels.find(h => h.id === 'rj2'),  // Oberoi Udaivilas
+      hotels.find(h => h.id === 'kl2'),  // Kumarakom Lake Resort
+      hotels.find(h => h.id === 'up5'),  // Hotel Sheela Agra (budget gem)
+    ].filter(Boolean);
 
-  document.getElementById('featuredHotels').innerHTML = featured.map(h => `
+    document.getElementById('featuredHotels').innerHTML = featured.map(h => `
     <a href="pages/hotel.html?id=${h.id}" style="text-decoration:none;color:inherit;display:block;background:var(--cream);border-radius:var(--radius);overflow:hidden;border:1px solid var(--gray-200);box-shadow:var(--shadow-sm);transition:var(--transition);"
        onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 36px rgba(15,30,46,0.15)'"
        onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow-sm)'">
@@ -489,6 +562,7 @@
         </div>
       </div>
     </a>`).join('');
-</script>
+  </script>
 </body>
+
 </html>

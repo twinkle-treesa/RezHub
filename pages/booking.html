@@ -5,8 +5,214 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Complete Booking — RezHub</title>
   <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    /* ── Demo Payment Modal ── */
+    #demoPayOverlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55); z-index: 10000;
+      align-items: center; justify-content: center;
+    }
+    #demoPayOverlay.active { display: flex; }
+    #demoPayModal {
+      background: #fff; border-radius: 18px; padding: 32px 28px;
+      width: 100%; max-width: 420px; box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+      position: relative; animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn { from { transform: translateY(24px); opacity:0; } to { transform: none; opacity:1; } }
+    #demoPayModal h3 { font-size: 1.1rem; color: var(--navy); margin-bottom: 4px; }
+    #demoPayModal .pay-amount {
+      font-size: 1.6rem; font-weight: 800; color: var(--navy); margin-bottom: 20px;
+    }
+    .demo-field { margin-bottom: 14px; }
+    .demo-field label { display: block; font-size: 0.75rem; font-weight: 600; color: #64748b; margin-bottom: 5px; letter-spacing: 0.05em; text-transform: uppercase; }
+    .demo-field input {
+      width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px;
+      padding: 11px 14px; font-size: 0.95rem; font-family: inherit;
+      outline: none; transition: border 0.2s; box-sizing: border-box;
+    }
+    .demo-field input:focus { border-color: #7c3aed; }
+    .demo-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .demo-pay-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+    .demo-tab {
+      flex: 1; padding: 9px 6px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+      background: #f8fafc; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      text-align: center; transition: all 0.18s; color: #64748b;
+    }
+    .demo-tab.active { border-color: #7c3aed; background: #f5f3ff; color: #7c3aed; }
+    .demo-tab-body { display: none; }
+    .demo-tab-body.active { display: block; }
+    #demoPayBtn {
+      width: 100%; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      color: #fff; border: none; border-radius: 10px; padding: 14px;
+      font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 6px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: opacity 0.2s;
+    }
+    #demoPayBtn:hover { opacity: 0.9; }
+    #demoPayBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .demo-close-btn {
+      position: absolute; top: 16px; right: 18px; background: none; border: none;
+      font-size: 22px; cursor: pointer; color: #94a3b8; line-height: 1;
+    }
+    .demo-upi-wrap { text-align: center; padding: 10px 0 6px; }
+    .demo-upi-wrap input {
+      width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px;
+      padding: 11px 14px; font-size: 0.95rem; font-family: inherit; box-sizing: border-box;
+    }
+    .demo-upi-wrap p { font-size: 0.8rem; color: #94a3b8; margin-top: 8px; }
+    .demo-nb-select {
+      width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px;
+      padding: 11px 14px; font-size: 0.92rem; font-family: inherit; box-sizing: border-box;
+    }
+    /* processing overlay inside modal */
+    #demoProcessing {
+      display: none; position: absolute; inset: 0; border-radius: 18px;
+      background: rgba(255,255,255,0.92);
+      align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+    }
+    #demoProcessing.active { display: flex; }
+    #demoProcessing .spin {
+      width: 44px; height: 44px; border: 5px solid #ede8ff;
+      border-top-color: #7c3aed; border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    #demoProcessing p { font-weight: 600; color: var(--navy); font-size: 0.95rem; }
+
+    .razorpay-pay-section {
+      background: linear-gradient(135deg, #f8f4ff 0%, #ede8ff 100%);
+      border: 1.5px solid #7c3aed22;
+      border-radius: 14px;
+      padding: 28px 24px;
+    }
+    .razorpay-logo-row {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 18px;
+    }
+    .razorpay-logo-row span { font-size: 0.82rem; color: var(--gray-400); }
+    .razorpay-methods {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;
+    }
+    .razorpay-method-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: #fff; border: 1px solid var(--gray-200);
+      border-radius: 8px; padding: 6px 14px;
+      font-size: 0.8rem; color: var(--navy); font-weight: 500;
+    }
+    .razorpay-method-badge .material-icons-round { font-size: 17px; color: #7c3aed; }
+    .btn-razorpay {
+      width: 100%; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      color: #fff; border: none; border-radius: 10px; padding: 15px 20px;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: opacity 0.2s, transform 0.1s; letter-spacing: 0.01em;
+    }
+    .btn-razorpay:hover { opacity: 0.92; transform: translateY(-1px); }
+    .btn-razorpay:active { transform: translateY(0); }
+    .btn-razorpay .material-icons-round { font-size: 20px; }
+    .secure-note {
+      display: flex; align-items: center; gap: 6px;
+      justify-content: center; font-size: 0.75rem; color: var(--gray-400); margin-top: 12px;
+    }
+    .secure-note .material-icons-round { font-size: 14px; color: var(--green); }
+    #rzpSpinner {
+      display: none; position: fixed; inset: 0;
+      background: rgba(255,255,255,0.75); z-index: 9999;
+      align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+    }
+    #rzpSpinner.active { display: flex; }
+    .spinner-ring {
+      width: 48px; height: 48px; border: 5px solid #ede8ff;
+      border-top-color: #7c3aed; border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #rzpSpinner p { color: var(--navy); font-weight: 600; font-size: 0.95rem; }
+  </style>
 </head>
 <body>
+
+<div id="rzpSpinner">
+  <div class="spinner-ring"></div>
+  <p id="spinnerMsg">Opening Razorpay…</p>
+</div>
+
+<!-- Demo Payment Modal -->
+<div id="demoPayOverlay">
+  <div id="demoPayModal">
+    <button class="demo-close-btn" onclick="closeDemoPay()" title="Close">&#x2715;</button>
+    <div id="demoProcessing">
+      <div class="spin"></div>
+      <p id="demoProcessMsg">Processing payment…</p>
+    </div>
+    <h3>Complete Payment</h3>
+    <div class="pay-amount" id="demoPayAmountLabel"></div>
+
+    <div class="demo-pay-tabs">
+      <button class="demo-tab active" onclick="switchTab('card',this)">💳 Card</button>
+      <button class="demo-tab" onclick="switchTab('upi',this)">📲 UPI</button>
+      <button class="demo-tab" onclick="switchTab('nb',this)">🏦 Net Banking</button>
+    </div>
+
+    <!-- Card -->
+    <div class="demo-tab-body active" id="tab-card">
+      <div class="demo-field">
+        <label>Card Number</label>
+        <input id="demoCardNum" maxlength="19" placeholder="4242 4242 4242 4242"
+          oninput="this.value=this.value.replace(/\D/g,'').replace(/(.{4})/g,'$1 ').trim().slice(0,19)">
+      </div>
+      <div class="demo-field">
+        <label>Name on Card</label>
+        <input id="demoCardName" placeholder="Rahul Sharma">
+      </div>
+      <div class="demo-field-row">
+        <div class="demo-field">
+          <label>Expiry</label>
+          <input id="demoExpiry" maxlength="5" placeholder="MM/YY"
+            oninput="let v=this.value.replace(/\D/g,'');if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);this.value=v.slice(0,5);">
+        </div>
+        <div class="demo-field">
+          <label>CVV</label>
+          <input id="demoCVV" maxlength="4" placeholder="•••" type="password">
+        </div>
+      </div>
+    </div>
+
+    <!-- UPI -->
+    <div class="demo-tab-body" id="tab-upi">
+      <div class="demo-upi-wrap">
+        <div class="demo-field">
+          <label>UPI ID</label>
+          <input id="demoUPI" placeholder="yourname@upi">
+        </div>
+        <p>Enter any UPI ID to simulate payment</p>
+      </div>
+    </div>
+
+    <!-- Net Banking -->
+    <div class="demo-tab-body" id="tab-nb">
+      <div class="demo-field">
+        <label>Select Bank</label>
+        <select class="demo-nb-select" id="demoBank">
+          <option value="">— Choose your bank —</option>
+          <option>State Bank of India</option>
+          <option>HDFC Bank</option>
+          <option>ICICI Bank</option>
+          <option>Axis Bank</option>
+          <option>Kotak Mahindra Bank</option>
+          <option>Bank of Baroda</option>
+          <option>Canara Bank</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="demoPayBtn" onclick="submitDemoPayment()">
+      <span style="font-size:18px;">🔒</span>
+      Pay Securely
+    </button>
+    <div style="text-align:center;font-size:0.73rem;color:#94a3b8;margin-top:10px;">
+      🔐 This is a demo — no real money is charged
+    </div>
+  </div>
+</div>
 
 <header class="site-header">
   <div class="container header-inner">
@@ -73,16 +279,17 @@
 
   const params = getParams();
   const hotelId = params.get('hotelId');
-  const roomId = params.get('roomId');
+  const roomId  = params.get('roomId');
   const checkIn = params.get('checkIn') || '';
   const checkOut = params.get('checkOut') || '';
-  const guests = params.get('guests') || '2';
-  const nights = calcNights(checkIn, checkOut);
+  const guests  = params.get('guests') || '2';
+  const nights  = calcNights(checkIn, checkOut);
 
   const hotel = hotels.find(h => h.id === hotelId);
-  const room = hotel?.rooms.find(r => r.id === roomId);
+  const room  = hotel?.rooms.find(r => r.id === roomId);
 
-  document.getElementById('breadcrumbSearch').href = `search.html?destination=${hotel?.city||''}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+  document.getElementById('breadcrumbSearch').href =
+    `search.html?destination=${hotel?.city||''}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
 
   if (!hotel || !room) {
     document.getElementById('pageContent').innerHTML = `
@@ -92,19 +299,35 @@
         <p>Please go back and select a room.</p>
         <a href="search.html" class="btn btn-primary">Browse Hotels</a>
       </div>`;
+  } else if (!checkIn || !checkOut || nights <= 0) {
+    // Dates missing — send user back to hotel page with a clear message
+    document.getElementById('pageContent').innerHTML = `
+      <div class="container empty-state" style="padding:60px 24px;text-align:center;">
+        <div class="material-icons-round" style="font-size:56px;color:var(--gold);margin-bottom:16px;">calendar_today</div>
+        <h2 style="margin-bottom:12px;">No Dates Selected</h2>
+        <p style="color:var(--gray-400);max-width:400px;margin:0 auto 28px;">
+          Please choose your check-in and check-out dates before completing a booking.
+        </p>
+        <a href="hotel.html?id=${hotel.id}&checkIn=&checkOut=&guests=${guests}"
+           class="btn btn-primary" style="display:inline-flex;align-items:center;gap:8px;">
+          <span class="material-icons-round">arrow_back</span>
+          Back to ${hotel.name}
+        </a>
+      </div>`;
   } else {
-    document.title = `Book ${room.name} — StayBooker`;
+    document.title = `Book ${room.name} — RezHub`;
     document.getElementById('breadcrumbHotel').textContent = hotel.name;
-    document.getElementById('breadcrumbHotel').href = `hotel.html?id=${hotel.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
+    document.getElementById('breadcrumbHotel').href =
+      `hotel.html?id=${hotel.id}&checkIn=${checkIn}&checkOut=${checkOut}&guests=${guests}`;
 
-    const total = room.price * nights;
-    // Loyalty discount
-    const loyalty = applyLoyaltyDiscount(total);
+    const total          = room.price * nights;
+    const loyalty        = applyLoyaltyDiscount(total);
     const discountedTotal = loyalty.discounted;
-    const taxes = Math.round(discountedTotal * 0.18);
-    const grandTotal = discountedTotal + taxes;
-    const currentTier = getCurrentTier();
-    const nextTier = getNextTier();
+    const taxes          = Math.round(discountedTotal * 0.18);
+    const grandTotal     = discountedTotal + taxes;
+    const currentTier    = getCurrentTier();
+    const nextTier       = getNextTier();
+
     const loyaltyBanner = currentTier ? `
       <div style="background:${currentTier.colorLight};border:1px solid ${currentTier.color}40;border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
         <div style="display:flex;align-items:center;gap:12px;">
@@ -127,15 +350,14 @@
         <a href="loyalty.html" style="font-size:0.78rem;color:var(--gold);font-weight:600;white-space:nowrap;text-decoration:none;">Learn more →</a>
       </div>` : '';
 
-    // Preference auto-fill banner
-    const prefs = loadPrefs();
+    const prefs    = loadPrefs();
     const prefCount = countPrefs(prefs);
     const prefsList = [];
-    if (prefs.temp) prefsList.push(`Room temp: ${prefs.temp}`);
+    if (prefs.temp)  prefsList.push(`Room temp: ${prefs.temp}`);
     if (prefs.pillow) prefsList.push(`${prefs.pillow} pillow`);
     if (prefs.floor) prefsList.push(`Floor: ${prefs.floor}`);
     if (prefs.diet && prefs.diet.length) prefsList.push(`Dietary: ${prefs.diet.join(', ')}`);
-    if (prefs.bed) prefsList.push(`Bed: ${prefs.bed}`);
+    if (prefs.bed)   prefsList.push(`Bed: ${prefs.bed}`);
 
     const prefNote = prefCount > 0 ? `
       <div class="alert alert-info" style="margin-bottom:24px;">
@@ -151,7 +373,6 @@
         <button onclick="buildPrefModal()" class="btn btn-outline" style="padding:6px 16px;font-size:0.8rem;white-space:nowrap;margin-left:12px;">Set Preferences</button>
       </div>`;
 
-    // Get saved special requests to pre-fill
     const savedSpecial = prefs.special || '';
 
     document.getElementById('pageContent').innerHTML = `
@@ -225,48 +446,6 @@
               </div>
 
               <div class="booking-form-section">
-                <h2>Payment Details</h2>
-                <div class="alert alert-info" style="margin-bottom:20px;">
-                  <span class="material-icons-round">lock</span>
-                  <span>Your payment information is encrypted and secure. We accept Visa, Mastercard, RuPay, and UPI.</span>
-                </div>
-                <div class="form-group" style="margin-bottom:20px;">
-                  <label class="form-label">Card Number *</label>
-                  <div class="input-wrap">
-                    <span class="material-icons-round icon">credit_card</span>
-                    <input type="text" id="cardNumber" class="input-field" placeholder="1234 5678 9012 3456" maxlength="19" required>
-                  </div>
-                  <div class="error-message" id="cardNumberErr">Valid 16-digit card number is required.</div>
-                </div>
-                <div class="form-group" style="margin-bottom:20px;">
-                  <label class="form-label">Name on Card *</label>
-                  <div class="input-wrap">
-                    <span class="material-icons-round icon">person</span>
-                    <input type="text" id="cardName" class="input-field" placeholder="Rahul Sharma" required>
-                  </div>
-                  <div class="error-message" id="cardNameErr">Name on card is required.</div>
-                </div>
-                <div class="form-grid-2">
-                  <div class="form-group">
-                    <label class="form-label">Expiry Date *</label>
-                    <div class="input-wrap">
-                      <span class="material-icons-round icon">event</span>
-                      <input type="text" id="expiryDate" class="input-field" placeholder="MM/YY" maxlength="5" required>
-                    </div>
-                    <div class="error-message" id="expiryErr">Valid expiry date (MM/YY) required.</div>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">CVV *</label>
-                    <div class="input-wrap">
-                      <span class="material-icons-round icon">lock</span>
-                      <input type="text" id="cvv" class="input-field" placeholder="123" maxlength="4" required>
-                    </div>
-                    <div class="error-message" id="cvvErr">CVV is required.</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="booking-form-section">
                 <h2>Special Requests <span style="font-size:0.9rem;font-weight:400;color:var(--gray-400);">(optional)</span></h2>
                 ${prefCount > 0 ? `<p style="font-size:0.8rem;color:var(--gray-400);margin-bottom:12px;">Your saved preferences have been included above. Add anything else below.</p>` : ''}
                 <div class="form-group">
@@ -275,17 +454,52 @@
                 </div>
               </div>
 
-              <div id="formError" class="alert alert-error" style="display:none;">
-                <span class="material-icons-round">error_outline</span>
-                <span id="formErrorMsg">Please fix the errors above.</span>
+              <div class="booking-form-section">
+                <h2>Payment</h2>
+                <div class="razorpay-pay-section">
+                  <div class="razorpay-logo-row">
+                    <svg height="26" viewBox="0 0 160 30" xmlns="http://www.w3.org/2000/svg">
+                      <text y="24" font-family="Arial,sans-serif" font-weight="800" font-size="22" fill="#072654">razor</text>
+                      <text x="70" y="24" font-family="Arial,sans-serif" font-weight="800" font-size="22" fill="#3395FF">pay</text>
+                    </svg>
+                    <span>Secure · Instant · Trusted by 10M+ businesses</span>
+                  </div>
+                  <div class="razorpay-methods">
+                    <div class="razorpay-method-badge">
+                      <span class="material-icons-round">credit_card</span> Cards (Visa / MC / RuPay)
+                    </div>
+                    <div class="razorpay-method-badge">
+                      <span class="material-icons-round">qr_code_2</span> UPI
+                    </div>
+                    <div class="razorpay-method-badge">
+                      <span class="material-icons-round">account_balance</span> Net Banking
+                    </div>
+                    <div class="razorpay-method-badge">
+                      <span class="material-icons-round">account_balance_wallet</span> Wallets
+                    </div>
+                    <div class="razorpay-method-badge">
+                      <span class="material-icons-round">payments</span> EMI
+                    </div>
+                  </div>
+
+                  <div id="formError" class="alert alert-error" style="display:none;margin-bottom:16px;">
+                    <span class="material-icons-round">error_outline</span>
+                    <span id="formErrorMsg">Please fix the errors above.</span>
+                  </div>
+
+                  <button type="button" id="rzpPayBtn" class="btn-razorpay">
+                    <span class="material-icons-round">lock</span>
+                    Pay Securely — ${formatINR(grandTotal)}${loyalty.saving > 0 ? ' (saved ' + formatINR(loyalty.saving) + ')' : ''}
+                  </button>
+                  <div class="secure-note">
+                    <span class="material-icons-round">verified_user</span>
+                    256-bit SSL encrypted · PCI DSS compliant · Powered by Razorpay
+                  </div>
+                </div>
               </div>
 
-              <button type="button" id="submitBtn" class="btn btn-primary btn-full btn-lg">
-                <span class="material-icons-round">check_circle</span>
-                Confirm Booking — ${formatINR(grandTotal)}${loyalty.saving > 0 ? " (saved " + formatINR(loyalty.saving) + ")" : ""}
-              </button>
-              <p style="font-size:0.78rem;color:var(--gray-400);text-align:center;margin-top:12px;">
-                By confirming, you agree to our Terms of Service and Privacy Policy. Free cancellation available.
+              <p style="font-size:0.78rem;color:var(--gray-400);text-align:center;margin-top:16px;">
+                By paying, you agree to our Terms of Service and Privacy Policy. Free cancellation available.
               </p>
             </div>
 
@@ -299,7 +513,6 @@
                   <span class="material-icons-round" style="font-size:14px;">location_on</span>
                   ${hotel.location}, ${hotel.city}
                 </div>
-
                 <div class="summary-divider"></div>
                 <div class="summary-label">Room</div>
                 <div class="summary-value">${room.name}</div>
@@ -339,7 +552,6 @@
                 <div style="margin-top:8px;font-size:0.78rem;color:var(--green);text-align:right;font-weight:600;">
                   You saved ${formatINR(loyalty.saving)} with your ${getCurrentTier().name} membership! 🎉
                 </div>` : ''}
-
                 <div style="margin-top:20px;background:var(--green-light);border-radius:8px;padding:12px;font-size:0.8rem;color:var(--green);display:flex;gap:8px;align-items:flex-start;">
                   <span class="material-icons-round" style="font-size:16px;flex-shrink:0;margin-top:1px;">check_circle</span>
                   Free cancellation up to 48 hours before check-in
@@ -350,63 +562,132 @@
         </div>
       </main>`;
 
-    document.getElementById('cardNumber').addEventListener('input', function() {
-      let v = this.value.replace(/\D/g, '').substring(0, 16);
-      this.value = v.replace(/(.{4})/g, '$1 ').trim();
-    });
-    document.getElementById('expiryDate').addEventListener('input', function() {
-      let v = this.value.replace(/\D/g, '').substring(0, 4);
-      if (v.length >= 3) v = v.substring(0, 2) + '/' + v.substring(2);
-      this.value = v;
-    });
+    // ── Demo Payment Handler ────────────────────────────────────────────────
+    let _guestName, _email, _specialRequests;
 
-    document.getElementById('submitBtn').addEventListener('click', () => {
+    // Tab switcher inside modal
+    window.switchTab = function(tab, btn) {
+      document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.demo-tab-body').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+    };
+
+    window.closeDemoPay = function() {
+      document.getElementById('demoPayOverlay').classList.remove('active');
+    };
+
+    // Validate guest form, then open demo modal
+    document.getElementById('rzpPayBtn').addEventListener('click', () => {
       let valid = true;
       function validateField(id, errId, condition, msg) {
-        const el = document.getElementById(id);
+        const el  = document.getElementById(id);
         const err = document.getElementById(errId);
         if (!condition(el.value.trim())) {
           el.classList.add('error'); err.classList.add('show'); err.textContent = msg; valid = false;
         } else { el.classList.remove('error'); err.classList.remove('show'); }
       }
-      validateField('firstName', 'firstNameErr', v => v.length > 0, 'First name is required.');
-      validateField('lastName', 'lastNameErr', v => v.length > 0, 'Last name is required.');
-      validateField('email', 'emailErr', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'Valid email address is required.');
-      validateField('phone', 'phoneErr', v => v.length >= 6, 'Phone number is required.');
-      validateField('cardNumber', 'cardNumberErr', v => v.replace(/\s/g, '').length === 16, 'Valid 16-digit card number is required.');
-      validateField('cardName', 'cardNameErr', v => v.length > 0, 'Name on card is required.');
-      validateField('expiryDate', 'expiryErr', v => /^\d{2}\/\d{2}$/.test(v), 'Valid expiry date (MM/YY) required.');
-      validateField('cvv', 'cvvErr', v => v.length >= 3, 'CVV is required.');
+      validateField('firstName', 'firstNameErr', v => v.length > 0,  'First name is required.');
+      validateField('lastName',  'lastNameErr',  v => v.length > 0,  'Last name is required.');
+      validateField('email',     'emailErr',     v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'Valid email address is required.');
+      validateField('phone',     'phoneErr',     v => v.length >= 6, 'Phone number is required.');
 
       if (!valid) {
-        document.getElementById('formError').style.display = 'flex';
+        const errBox = document.getElementById('formError');
+        errBox.style.display = 'flex';
+        document.getElementById('formErrorMsg').textContent = 'Please fill in all required guest details above.';
         document.querySelector('.error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
       document.getElementById('formError').style.display = 'none';
 
-      const bookingId = 'SB' + Date.now().toString().slice(-8).toUpperCase();
-      const guestName = `${document.getElementById('firstName').value.trim()} ${document.getElementById('lastName').value.trim()}`;
-      const email = document.getElementById('email').value.trim();
-      const specialRequests = document.getElementById('specialRequests').value.trim();
+      _guestName       = document.getElementById('firstName').value.trim() + ' ' + document.getElementById('lastName').value.trim();
+      _email           = document.getElementById('email').value.trim();
+      _specialRequests = document.getElementById('specialRequests').value.trim();
 
-      // Save booking for My Bookings page
-      const bookingTier = getCurrentTier();
-      saveBooking({
-        bookingId, hotelId: hotel.id, hotelName: hotel.name, hotelCity: hotel.city,
-        hotelImage: hotel.image, roomName: room.name, roomId: room.id,
-        roomPrice: room.price, checkIn, checkOut, guests, nights,
-        total, taxes, grandTotal, guestName, email, specialRequests,
-        loyaltySaving: loyalty.saving, tierAtBooking: bookingTier ? bookingTier.id : null,
-        bookedAt: new Date().toISOString(), status: 'Confirmed'
-      });
+      // Set amount label in modal
+      document.getElementById('demoPayAmountLabel').textContent = formatINR(grandTotal);
 
-      const confirmParams = new URLSearchParams({
-        bid: bookingId, hotel: hotel.name, city: hotel.city, room: room.name,
-        checkIn, checkOut, guests, nights, total: grandTotal, name: guestName, email
-      });
-      window.location.href = `confirmation.html?${confirmParams.toString()}`;
+      // Pre-fill card name
+      const cardNameEl = document.getElementById('demoCardName');
+      if (!cardNameEl.value) cardNameEl.value = _guestName;
+
+      // Open modal
+      document.getElementById('demoPayOverlay').classList.add('active');
     });
+
+    // Close modal on backdrop click
+    document.getElementById('demoPayOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeDemoPay();
+    });
+
+    // Submit demo payment
+    window.submitDemoPayment = function() {
+      // Basic validation per active tab
+      const activeTab = document.querySelector('.demo-tab-body.active').id;
+      if (activeTab === 'tab-card') {
+        const num  = document.getElementById('demoCardNum').value.replace(/\s/g,'');
+        const name = document.getElementById('demoCardName').value.trim();
+        const exp  = document.getElementById('demoExpiry').value.trim();
+        const cvv  = document.getElementById('demoCVV').value.trim();
+        if (num.length < 12 || !name || exp.length < 5 || cvv.length < 3) {
+          alert('Please fill in all card details.');
+          return;
+        }
+      } else if (activeTab === 'tab-upi') {
+        const upi = document.getElementById('demoUPI').value.trim();
+        if (!upi.includes('@')) { alert('Please enter a valid UPI ID (e.g. name@upi).'); return; }
+      } else if (activeTab === 'tab-nb') {
+        if (!document.getElementById('demoBank').value) { alert('Please select a bank.'); return; }
+      }
+
+      // Show processing overlay
+      const proc = document.getElementById('demoProcessing');
+      const btn  = document.getElementById('demoPayBtn');
+      proc.classList.add('active');
+      btn.disabled = true;
+
+      const messages = ['Connecting to bank…', 'Authorising payment…', 'Confirming booking…'];
+      let step = 0;
+      const tick = setInterval(() => {
+        document.getElementById('demoProcessMsg').textContent = messages[step] || 'Almost done…';
+        step++;
+      }, 900);
+
+      setTimeout(() => {
+        clearInterval(tick);
+        proc.classList.remove('active');
+        btn.disabled = false;
+        document.getElementById('demoPayOverlay').classList.remove('active');
+
+        // Generate fake payment ID and save booking
+        const fakePayId  = 'DEMO_' + Date.now().toString(36).toUpperCase();
+        const bookingId  = 'SB' + Date.now().toString().slice(-8).toUpperCase();
+        const bookingTier = getCurrentTier();
+
+        saveBooking({
+          bookingId,
+          razorpayPaymentId: fakePayId,
+          hotelId: hotel.id, hotelName: hotel.name, hotelCity: hotel.city,
+          hotelImage: hotel.image, roomName: room.name, roomId: room.id,
+          roomPrice: room.price, checkIn, checkOut, guests, nights,
+          total, taxes, grandTotal,
+          guestName: _guestName, email: _email,
+          specialRequests: _specialRequests,
+          loyaltySaving: loyalty.saving,
+          tierAtBooking: bookingTier ? bookingTier.id : null,
+          bookedAt: new Date().toISOString(),
+          status: 'Confirmed'
+        });
+
+        const confirmParams = new URLSearchParams({
+          bid: bookingId, hotel: hotel.name, city: hotel.city, room: room.name,
+          checkIn, checkOut, guests, nights, total: grandTotal,
+          name: _guestName, email: _email, paymentId: fakePayId
+        });
+        window.location.href = 'confirmation.html?' + confirmParams.toString();
+      }, 2800);
+    };
   }
 </script>
 </body>
