@@ -53,7 +53,7 @@ switch ($action) {
         startSession();
         $_SESSION['user'] = [
             'user_id'   => $userId,
-            'full_name' => $name,
+            'name'      => $name,
             'email'     => $email,
             'phone'     => $phone,
         ];
@@ -87,11 +87,19 @@ switch ($action) {
 
         unset($user['password_hash'], $user['is_active']);
 
+        // Normalise to consistent field names expected by the frontend
+        $sessionUser = [
+            'user_id' => $user['user_id'] ?? $user['id'],
+            'name'    => $user['full_name'] ?? $user['name'] ?? '',
+            'email'   => $user['email'],
+            'phone'   => $user['phone'] ?? '',
+        ];
+
         startSession();
         session_regenerate_id(true);
-        $_SESSION['user'] = $user;
+        $_SESSION['user'] = $sessionUser;
 
-        respond(true, $user, 'Login successful.');
+        respond(true, $sessionUser, 'Login successful.');
     }
 
     // ── Admin Login ───────────────────────────────────────────────────────────
@@ -112,7 +120,7 @@ switch ($action) {
         $row->execute([$user]);
         $admin = $row->fetch();
 
-        if (!$admin || !password_verify($pass, $admin['password_hash']))
+        if (!$admin || hash('sha256', $pass) !== $admin['password_hash'])
             respond(false, null, 'Invalid admin credentials.', 401);
 
         if (!$admin['is_active'])
