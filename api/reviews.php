@@ -24,9 +24,9 @@ if ($action === 'submit') {
     if (!$bookingId || $rating < 1 || $rating > 5)
         respond(false, null, 'booking_id and rating (1-5) are required.', 422);
 
-    // Verify booking belongs to user & is completed
+    // Verify booking belongs to user & checkout date has passed
     $bk = $db->prepare(
-        'SELECT hotel_id, user_id, status FROM bookings WHERE booking_id = ?'
+        'SELECT hotel_id, user_id, status, check_out_date FROM bookings WHERE booking_id = ?'
     );
     $bk->execute([$bookingId]);
     $booking = $bk->fetch();
@@ -35,8 +35,12 @@ if ($action === 'submit') {
         respond(false, null, 'Booking not found.', 404);
     if ((int)$booking['user_id'] !== (int)$user['user_id'])
         respond(false, null, 'Access denied.', 403);
-    if ($booking['status'] !== 'completed')
-        respond(false, null, 'You can only review completed stays.', 422);
+    // Allow review if status is 'completed' OR checkout date has already passed
+    $checkoutPassed = strtotime($booking['check_out_date']) < strtotime('today');
+    if ($booking['status'] === 'cancelled')
+        respond(false, null, 'You cannot review a cancelled booking.', 422);
+    if (!$checkoutPassed && $booking['status'] !== 'completed')
+        respond(false, null, 'You can only review stays after your checkout date.', 422);
 
     // Check for duplicate
     $dup = $db->prepare('SELECT review_id FROM reviews WHERE booking_id = ?');
